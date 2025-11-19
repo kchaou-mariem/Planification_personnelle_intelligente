@@ -1,0 +1,4 @@
+5/12/2025: completer les méthode de changement de données des utilisateurs.
+connecter la classe avec la base de données créer
+recherche sur les méthodes d'optimisation
+

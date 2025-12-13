@@ -104,11 +104,11 @@ public ArrayList<Activite> getListe_activite() {
 }
 public void setListe_activite(ArrayList<Activite> liste_activite) {
 	this.liste_activite = liste_activite;
-}Cont
+}
 public ArrayList<Contrainte> getListe_contrainte() {
 	return liste_contrainte;
 }
-public void setListe_contrainte(ArrayList<rainte> liste_contrainte) {
+public void setListe_contrainte(ArrayList<Contrainte> liste_contrainte) {
 	this.liste_contrainte = liste_contrainte;
 }
  public String toString() {

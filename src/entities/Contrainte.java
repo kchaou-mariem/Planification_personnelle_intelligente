@@ -1,7 +1,6 @@
 package entities;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 public class Contrainte {
 	private Long id; 

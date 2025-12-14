@@ -171,8 +171,6 @@ private String hash_password(String motdepasse, String salt) {
     }
 }
 
-
-
 public void set_mot_de_passe(String motdepasse) {
 	this.salt = generate_salt();
 	this.motdepassehash=hash_password(motdepasse, this.salt);	

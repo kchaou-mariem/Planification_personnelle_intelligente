@@ -1,7 +1,7 @@
  package service;
 
-import Entities.Activite;
-import Entities.TypeActivite;
+import entities.Activite;
+import entities.TypeActivite;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

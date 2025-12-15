@@ -12,7 +12,7 @@ import java.util.Optional;
  */
 public interface ActiviteDAO {
     
-    // ========== OPÉRATIONS CRUD DE BASE ==========
+ 
     
     /**
      * Ajouter une nouvelle activité dans la base de données
@@ -48,7 +48,7 @@ public interface ActiviteDAO {
      */
     List<Activite> getAll();
     
-    // ========== RECHERCHE ET FILTRAGE ==========
+   
     
     /**
      * Récupérer les activités d'un utilisateur spécifique

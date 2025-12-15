@@ -1,0 +1,17 @@
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\config\Connect.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\dao\impl\ConflitDAOImpl.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\dao\impl\ContrainteDAOImpl.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\dao\interfaces\ConflitDAO.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\dao\interfaces\ContrainteDAO.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\Activite.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\Conflit.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\Contrainte.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\TypeActivite.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\TypeConflit.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\TypeContrainte.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\entities\Utilisateur.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\service\ConflitService.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\service\impl\ConflitServiceImpl.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\test\TestConflitDAO.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\test\TestDatabaseOperations.java
+C:\Users\PC\eclipse-workspace\MiniProjetJava\src\traitement\ContrainteTraitement.java

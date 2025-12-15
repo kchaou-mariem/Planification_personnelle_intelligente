@@ -1,9 +1,9 @@
 package entities;
 
 public enum TypeContrainte {
-	   SOMMEIL,
-	   TRAVAIL,
+	   Sommeil,
+	   Travail,
 	   RDV,
-	   REPOS,
-	   COURS
+	   Repos,
+	   Cours
 }

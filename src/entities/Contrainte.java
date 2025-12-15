@@ -2,7 +2,7 @@ package entities;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -11,8 +11,8 @@ public class Contrainte {
 	private Long id; 
 	private String titre;
 	private TypeContrainte type;
-	private LocalDateTime dateHeureDeb;
-	private LocalDateTime dateHeureFin;
+	private LocalTime dateHeureDeb;
+	private LocalTime dateHeureFin;
 	private boolean repetitif;
 	/**
 	 * Dates spécifiques où la contrainte s'applique (ex: 2025-12-01, 2025-12-03)
@@ -23,6 +23,7 @@ public class Contrainte {
 	 */
 	private List<DayOfWeek> joursSemaine = new ArrayList<>();
 	private Long utilisateurId; // chaque contrainte appartient à un seul utilisateur
+	private StatutContrainte statut = StatutContrainte.ACTIVE; // par défaut ACTIVE
 	
 	// Placeholder: la classe Utilisateur n'est pas encore créée
 	// private Utilisateur proprietaire; // à décommenter lorsque Utilisateur existera
@@ -37,9 +38,9 @@ public class Contrainte {
 	}
 	
 	/**
-	 * Constructeur principal pour une contrainte unique ou période simple.
+	 * Constructeur principal pour une contrainte ; les heures sont fournies via LocalTime.
 	 */
-	public Contrainte(String titre, TypeContrainte type, LocalDateTime dateHeureDeb, LocalDateTime dateHeureFin,
+	public Contrainte(String titre, TypeContrainte type, LocalTime dateHeureDeb, LocalTime dateHeureFin,
 				boolean repetitif, List<LocalDate> datesSpecifiques, List<DayOfWeek> joursSemaine) {
 		super();
 		this.id = compteurId;
@@ -62,22 +63,25 @@ public class Contrainte {
 	public Long getId() {
 		return id;
 	}
+	public void setId(Long id) {
+		this.id = id;
+	}
 	public TypeContrainte getType() {
 		return type;
 	}
 	public void setType(TypeContrainte type) {
 		this.type = type;
 	}
-	public LocalDateTime getDateHeureDeb() {
+	public LocalTime getDateHeureDeb() {
 		return dateHeureDeb;
 	}
-	public void setDateHeureDeb(LocalDateTime dateHeureDeb) {
+	public void setDateHeureDeb(LocalTime dateHeureDeb) {
 		this.dateHeureDeb = dateHeureDeb;
 	}
-	public LocalDateTime getDateHeureFin() {
+	public LocalTime getDateHeureFin() {
 		return dateHeureFin;
 	}
-	public void setDateHeureFin(LocalDateTime dateHeureFin) {
+	public void setDateHeureFin(LocalTime dateHeureFin) {
 		this.dateHeureFin = dateHeureFin;
 	}
 	public boolean isRepetitif() {
@@ -107,10 +111,18 @@ public class Contrainte {
 		this.utilisateurId = utilisateurId;
 	}
 
+	public StatutContrainte getStatut() {
+		return statut;
+	}
+
+	public void setStatut(StatutContrainte statut) {
+		this.statut = statut;
+	}
+
 	@Override
 	public String toString() {
 		return "Contrainte [id=" + id + ", titre=" + titre + ", type=" + type + ", dateHeureDeb=" + dateHeureDeb + ", dateHeureFin=" + dateHeureFin
-			+ ", repetitif=" + repetitif + ", datesSpecifiques=" + datesSpecifiques + ", joursSemaine=" + joursSemaine + "]";
+			+ ", repetitif=" + repetitif + ", datesSpecifiques=" + datesSpecifiques + ", joursSemaine=" + joursSemaine + ", statut=" + statut + "]";
 	}
 
 	@Override

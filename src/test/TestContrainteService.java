@@ -1,6 +1,6 @@
 package test;
 
-import entities.*;
+import Entities.*;
 import service.impl.ContrainteServiceImpl;
 
 import java.time.DayOfWeek;

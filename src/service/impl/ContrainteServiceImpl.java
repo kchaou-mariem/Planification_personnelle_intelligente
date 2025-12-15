@@ -2,9 +2,9 @@ package service.impl;
 
 import dao.impl.ContrainteDAOImpl;
 import dao.interfaces.ContrainteDAO;
-import entities.Contrainte;
-import entities.StatutContrainte;
-import entities.TypeContrainte;
+import Entities.Contrainte;
+import Entities.StatutContrainte;
+import Entities.TypeContrainte;
 import service.ContrainteService;
 
 import java.time.LocalTime;

@@ -1,4 +1,4 @@
-package entities;
+package Entities;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

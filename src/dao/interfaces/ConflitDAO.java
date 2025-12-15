@@ -1,7 +1,7 @@
 package dao.interfaces;
 
-import entities.Conflit;
-import entities.TypeConflit;
+import Entities.Conflit;
+import Entities.TypeConflit;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

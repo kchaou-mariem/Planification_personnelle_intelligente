@@ -1,7 +1,7 @@
 package dao.impl;
 
-import entities.Conflit;
-import entities.TypeConflit;
+import Entities.Conflit;
+import Entities.TypeConflit;
 import config.Connect;
 import dao.interfaces.ConflitDAO;
 

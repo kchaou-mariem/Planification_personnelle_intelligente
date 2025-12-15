@@ -1,8 +1,8 @@
 package dao.interfaces;
 
-import entities.Contrainte;
-import entities.StatutContrainte;
-import entities.TypeContrainte;
+import Entities.Contrainte;
+import Entities.StatutContrainte;
+import Entities.TypeContrainte;
 
 import java.time.LocalTime;
 import java.util.List;

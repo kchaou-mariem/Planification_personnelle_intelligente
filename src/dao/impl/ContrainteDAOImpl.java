@@ -2,9 +2,9 @@ package dao.impl;
 
 import config.Connect;
 import dao.interfaces.ContrainteDAO;
-import entities.Contrainte;
-import entities.StatutContrainte;
-import entities.TypeContrainte;
+import Entities.Contrainte;
+import Entities.StatutContrainte;
+import Entities.TypeContrainte;
 
 import java.sql.*;
 import java.time.LocalDate;

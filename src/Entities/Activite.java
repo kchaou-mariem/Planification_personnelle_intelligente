@@ -1,41 +1,81 @@
-package entities;
+package Entities;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Activite {
+	private Long idActivite;
 	private String titre;
+	private String description;
 	private TypeActivite type;
 	private int duree;
 	private int priorite;
 	private LocalDateTime deadline;
 	private LocalDateTime horaireDebut;
 	private LocalDateTime horaireFin;
+	private Long idUtilisateur;
+	private boolean completee;
 	List<Activite> listeActivites = new ArrayList<>();
 
-
-	public Activite(String titre, TypeActivite type, int duree, int priorite, LocalDateTime deadline,
-			LocalDateTime horaireDebut, LocalDateTime horaireFin) {
+	// Constructeur complet avec ID
+	public Activite(Long idActivite, String titre, String description, TypeActivite type, int duree, 
+			int priorite, LocalDateTime deadline, LocalDateTime horaireDebut, LocalDateTime horaireFin,
+			Long idUtilisateur, boolean completee) {
 		super();
+		this.idActivite = idActivite;
 		this.titre = titre;
+		this.description = description;
 		this.type = type;
 		this.duree = duree;
 		this.priorite = priorite;
 		this.deadline = deadline;
 		this.horaireDebut = horaireDebut;
 		this.horaireFin = horaireFin;
+		this.idUtilisateur = idUtilisateur;
+		this.completee = completee;
+	}
+
+	// Constructeur sans ID (pour création)
+	public Activite(String titre, String description, TypeActivite type, int duree, int priorite, LocalDateTime deadline,
+			LocalDateTime horaireDebut, LocalDateTime horaireFin, Long idUtilisateur) {
+		super();
+		this.titre = titre;
+		this.description = description;
+		this.type = type;
+		this.duree = duree;
+		this.priorite = priorite;
+		this.deadline = deadline;
+		this.horaireDebut = horaireDebut;
+		this.horaireFin = horaireFin;
+		this.idUtilisateur = idUtilisateur;
+		this.completee = false;
 	}
 
 
+
+	public Long getIdActivite() {
+		return idActivite;
+	}
+
+	public void setIdActivite(Long idActivite) {
+		this.idActivite = idActivite;
+	}
 
 	public String getTitre() {
 		return titre;
 	}
 
-
 	public void setTitre(String titre) {
 		this.titre = titre;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 
@@ -97,10 +137,28 @@ public class Activite {
 	public void setHoraireFin(LocalDateTime horaireFin) {
 		this.horaireFin = horaireFin;
 	}
+
+	public Long getIdUtilisateur() {
+		return idUtilisateur;
+	}
+
+	public void setIdUtilisateur(Long idUtilisateur) {
+		this.idUtilisateur = idUtilisateur;
+	}
+
+	public boolean isCompletee() {
+		return completee;
+	}
+
+	public void setCompletee(boolean completee) {
+		this.completee = completee;
+	}
 	@Override
 	public String toString() {
-		return "Activite [titre=" + titre + ", type=" + type + ", duree=" + duree + ", priorite=" + priorite
-				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin + "]";
+		return "Activite [idActivite=" + idActivite + ", titre=" + titre + ", description=" + description 
+				+ ", type=" + type + ", duree=" + duree + ", priorite=" + priorite
+				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin 
+				+ ", idUtilisateur=" + idUtilisateur + ", completee=" + completee + "]";
 	}
 	public boolean ajouterActivite(String titre, TypeActivite type, int duree, int priorite,
             LocalDateTime deadline, LocalDateTime horaireDebut,

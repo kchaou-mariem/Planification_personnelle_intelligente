@@ -1,9 +1,9 @@
 package test;
 
 import dao.impl.ContrainteDAOImpl;
-import entities.Contrainte;
-import entities.StatutContrainte;
-import entities.TypeContrainte;
+import Entities.Contrainte;
+import Entities.StatutContrainte;
+import Entities.TypeContrainte;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

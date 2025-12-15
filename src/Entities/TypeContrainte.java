@@ -1,4 +1,4 @@
-package entities;
+package Entities;
 
 public enum TypeContrainte {
 	   Sommeil,

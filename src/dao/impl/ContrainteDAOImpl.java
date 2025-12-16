@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
-    public Long ajouter(Contrainte contrainte) {
-        String sql = "INSERT INTO contrainte (titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public int ajouter(Contrainte contrainte) {
+        String sql = "INSERT INTO contrainte (titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, contrainte.getTitre());
             ps.setString(2, contrainte.getType() != null ? contrainte.getType().name() : null);
@@ -33,23 +33,24 @@ public class ContrainteDAOImpl implements ContrainteDAO {
             ps.setString(6, datesToJson(contrainte.getDatesSpecifiques()));
             ps.setString(7, joursToJson(contrainte.getJoursSemaine()));
             ps.setString(8, contrainte.getStatut() != null ? contrainte.getStatut().name() : "ACTIVE");
+            ps.setInt(9, contrainte.getUtilisateurId());
 
             int aff = ps.executeUpdate();
             if (aff > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (gk.next()) {
-                        long id = gk.getLong(1);
+                        int id = gk.getInt(1);
                         return id;
                     }
                 }
             }
         } catch (SQLException e) { e.printStackTrace(); }
-        return -1L;
+        return -1;
     }
 
     @Override
     public boolean modifier(Contrainte contrainte) {
-        String sql = "UPDATE contrainte SET titre = ?, type_contrainte = ?, heure_debut = ?, heure_fin = ?, repetitif = ?, dates_specifiques = ?, jours = ?, statut = ? WHERE id_contrainte = ?";
+        String sql = "UPDATE contrainte SET titre = ?, type_contrainte = ?, heure_debut = ?, heure_fin = ?, repetitif = ?, dates_specifiques = ?, jours = ?, statut = ?, id_utilisateur = ? WHERE id_contrainte = ?";
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, contrainte.getTitre());
             ps.setString(2, contrainte.getType() != null ? contrainte.getType().name() : null);
@@ -62,28 +63,29 @@ public class ContrainteDAOImpl implements ContrainteDAO {
             ps.setString(6, datesToJson(contrainte.getDatesSpecifiques()));
             ps.setString(7, joursToJson(contrainte.getJoursSemaine()));
             ps.setString(8, contrainte.getStatut() != null ? contrainte.getStatut().name() : "ACTIVE");
+            ps.setInt(9, contrainte.getUtilisateurId());
 
-            ps.setLong(9, contrainte.getId());
+            ps.setInt(10, contrainte.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
     @Override
-    public boolean supprimer(Long idContrainte) {
+    public boolean supprimer(int idContrainte) {
         String sql = "DELETE FROM contrainte WHERE id_contrainte = ?";
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, idContrainte);
+            ps.setInt(1, idContrainte);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
     @Override
-    public Optional<Contrainte> getById(Long idContrainte) {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte WHERE id_contrainte = ?";
+    public Optional<Contrainte> getById(int idContrainte) {
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE id_contrainte = ?";
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, idContrainte);
+            ps.setInt(1, idContrainte);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Contrainte c = mapRow(rs);
@@ -96,7 +98,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
     public List<Contrainte> getAll() {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte ORDER BY id_contrainte DESC";
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte ORDER BY id_contrainte DESC";
         List<Contrainte> list = new ArrayList<>();
         try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
@@ -109,7 +111,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
     public List<Contrainte> getByPeriode(LocalTime heureDebut, LocalTime heureFin) {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte WHERE heure_debut >= ? AND heure_fin <= ?";
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE heure_debut >= ? AND heure_fin <= ?";
         List<Contrainte> list = new ArrayList<>();
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTime(1, Time.valueOf(heureDebut));
@@ -126,7 +128,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
     public List<Contrainte> getRepetitives() {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte WHERE repetitif = 1";
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE repetitif = 1";
         List<Contrainte> list = new ArrayList<>();
         try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
@@ -139,7 +141,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
     public List<Contrainte> getNonRepetitives() {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte WHERE repetitif = 0";
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE repetitif = 0";
         List<Contrainte> list = new ArrayList<>();
         try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
@@ -161,7 +163,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     @Override
     public List<Contrainte> getContraintesByStatut(StatutContrainte statut) {
-        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut FROM contrainte WHERE statut = ? ORDER BY id_contrainte DESC";
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE statut = ? ORDER BY id_contrainte DESC";
         List<Contrainte> list = new ArrayList<>();
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, statut != null ? statut.name() : "ACTIVE");
@@ -200,7 +202,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
     // ---------- Helpers ----------
     private Contrainte mapRow(ResultSet rs) throws SQLException {
         Contrainte c = new Contrainte();
-        c.setId(rs.getLong("id_contrainte"));
+        c.setId(rs.getInt("id_contrainte"));
         c.setTitre(rs.getString("titre"));
         String type = rs.getString("type_contrainte");
         if (type != null && !type.trim().isEmpty()) {
@@ -230,6 +232,8 @@ public class ContrainteDAOImpl implements ContrainteDAO {
                 c.setStatut(StatutContrainte.ACTIVE); // default
             }
         }
+        
+        c.setUtilisateurId(rs.getInt("id_utilisateur"));
 
         return c;
     }

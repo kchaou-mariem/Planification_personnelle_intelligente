@@ -13,10 +13,10 @@ import java.util.Optional;
  */
 public interface ContrainteDAO {
 
-    Long ajouter(Contrainte contrainte);
+    int ajouter(Contrainte contrainte);
     boolean modifier(Contrainte contrainte);
-    boolean supprimer(Long idContrainte);
-    Optional<Contrainte> getById(Long idContrainte);
+    boolean supprimer(int idContrainte);
+    Optional<Contrainte> getById(int idContrainte);
     List<Contrainte> getAll();
 
     // Requêtes utilitaires

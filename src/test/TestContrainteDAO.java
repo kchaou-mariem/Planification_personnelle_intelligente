@@ -14,7 +14,7 @@ import java.util.List;
 public class TestContrainteDAO {
     
     private static ContrainteDAOImpl dao = new ContrainteDAOImpl();
-    private static Long testId = null;
+    private static int testId = 0;
     
     public static void main(String[] args) {
         System.out.println("========== TEST CONTRAINTE DAO ==========\n");
@@ -44,9 +44,10 @@ public class TestContrainteDAO {
             LocalTime.of(13, 0),
             true,
             Arrays.asList(LocalDate.of(2025, 12, 25)),
-            Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+            Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            1
         );
-        c.setUtilisateurId(1L);
+        c.setUtilisateurId(1);
         c.setStatut(StatutContrainte.ACTIVE);
         
         testId = dao.ajouter(c);
@@ -60,7 +61,7 @@ public class TestContrainteDAO {
     
     private static void testGetById() {
         System.out.println(">>> TEST GET BY ID");
-        if (testId != null) {
+        if (testId > 0) {
             dao.getById(testId).ifPresentOrElse(
                 contr -> System.out.println("✓ Contrainte trouvée: " + contr),
                 () -> System.out.println("✗ Contrainte non trouvée")
@@ -71,7 +72,7 @@ public class TestContrainteDAO {
     
     private static void testModifier() {
         System.out.println(">>> TEST MODIFIER");
-        if (testId != null) {
+        if (testId > 0) {
             dao.getById(testId).ifPresent(c -> {
                 c.setTitre("Pause déjeuner modifiée");
                 c.setStatut(StatutContrainte.DESACTIVE);
@@ -161,7 +162,7 @@ public class TestContrainteDAO {
     
     private static void testSupprimer() {
         System.out.println(">>> TEST SUPPRIMER");
-        if (testId != null) {
+        if (testId > 0) {
             boolean success = dao.supprimer(testId);
             if (success) {
                 System.out.println("✓ Contrainte supprimée avec succès (ID: " + testId + ")");

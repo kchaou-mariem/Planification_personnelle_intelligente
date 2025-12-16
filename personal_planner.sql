@@ -80,7 +80,9 @@ CREATE TABLE `contrainte` (
   `dates_specifiques` varchar(500) DEFAULT NULL,
   `jours` varchar(500) DEFAULT NULL,
   `statut` enum('ACTIVE','DESACTIVE') DEFAULT 'ACTIVE',
-  PRIMARY KEY (`id_contrainte`)
+  `id_utilisateur` int(11) NOT NULL,
+  PRIMARY KEY (`id_contrainte`),
+  FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
 

@@ -16,7 +16,7 @@ import java.util.Optional;
 public class TestContrainteService {
     
     private static ContrainteServiceImpl contrainteService = new ContrainteServiceImpl();
-    private static Long testContrainteId = null;
+    private static int testContrainteId = 0;
     
     public static void main(String[] args) {
         System.out.println("========== TESTS CONTRAINTE SERVICE ==========\n");
@@ -45,9 +45,10 @@ public class TestContrainteService {
             TypeContrainte.Repos,
             LocalTime.of(12, 0),
             LocalTime.of(13, 30),
-            false,
+            true,
             Arrays.asList(LocalDate.of(2025, 12, 25), LocalDate.of(2025, 1, 1)),
-            Arrays.asList(DayOfWeek.MONDAY)
+            Arrays.asList(DayOfWeek.MONDAY),
+            1
         );
         c.setStatut(StatutContrainte.ACTIVE);
         
@@ -62,7 +63,7 @@ public class TestContrainteService {
     
     private static void testGetContrainteById() {
         System.out.println(">>> TEST GET CONTRAINTE BY ID");
-        if (testContrainteId != null) {
+        if (testContrainteId >0) {
             Optional<Contrainte> opt = contrainteService.getContrainteById(testContrainteId);
             if (opt.isPresent()) {
                 System.out.println("✓ Contrainte trouvée: " + opt.get().getTitre());
@@ -76,7 +77,7 @@ public class TestContrainteService {
     
     private static void testModifierContrainte() {
         System.out.println(">>> TEST MODIFIER CONTRAINTE");
-        if (testContrainteId != null) {
+        if (testContrainteId >0) {
             Optional<Contrainte> opt = contrainteService.getContrainteById(testContrainteId);
             if (opt.isPresent()) {
                 Contrainte c = opt.get();
@@ -96,7 +97,7 @@ public class TestContrainteService {
     
     private static void testActiverDesactiverContrainte() {
         System.out.println(">>> TEST ACTIVER/DESACTIVER CONTRAINTE");
-        if (testContrainteId != null) {
+        if (testContrainteId >0) {
             // Désactiver
             boolean success = contrainteService.desactiverContrainte(testContrainteId);
             if (success) {
@@ -150,7 +151,7 @@ public class TestContrainteService {
     
     private static void testEstEnConflit() {
         System.out.println(">>> TEST EST EN CONFLIT");
-        if (testContrainteId != null) {
+        if (testContrainteId >0) {
             Optional<Contrainte> opt = contrainteService.getContrainteById(testContrainteId);
             if (opt.isPresent()) {
                 Contrainte c = opt.get();
@@ -189,7 +190,7 @@ public class TestContrainteService {
     
     private static void testSupprimerContrainte() {
         System.out.println(">>> TEST SUPPRIMER CONTRAINTE");
-        if (testContrainteId != null) {
+        if (testContrainteId >0) {
             boolean success = contrainteService.supprimerContrainte(testContrainteId);
             if (success) {
                 System.out.println("✓ Contrainte supprimée avec succès (ID: " + testContrainteId + ")");

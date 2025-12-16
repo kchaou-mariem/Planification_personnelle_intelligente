@@ -16,7 +16,7 @@ public interface ContrainteService {
 	/**
 	 * Ajoute une nouvelle contrainte
 	 */
-	Long ajouterContrainte(Contrainte contrainte);
+	int ajouterContrainte(Contrainte contrainte);
 
 	/**
 	 * Modifie une contrainte existante
@@ -26,12 +26,12 @@ public interface ContrainteService {
 	/**
 	 * Supprime une contrainte
 	 */
-	boolean supprimerContrainte(Long idContrainte);
+	boolean supprimerContrainte(int idContrainte);
 
 	/**
 	 * Récupère une contrainte par son ID
 	 */
-	Optional<Contrainte> getContrainteById(Long idContrainte);
+	Optional<Contrainte> getContrainteById(int idContrainte);
 
 	/**
 	 * Récupère toutes les contraintes
@@ -76,17 +76,17 @@ public interface ContrainteService {
 	/**
 	 * Active une contrainte
 	 */
-	boolean activerContrainte(Long idContrainte);
+	boolean activerContrainte(int idContrainte);
 
 	/**
 	 * Désactive une contrainte
 	 */
-	boolean desactiverContrainte(Long idContrainte);
+	boolean desactiverContrainte(int idContrainte);
 
 	/**
 	 * Change le statut d'une contrainte
 	 */
-	boolean changerStatutContrainte(Long idContrainte, StatutContrainte newStatut);
+	boolean changerStatutContrainte(int idContrainte, StatutContrainte newStatut);
 
 	/**
 	 * Compte le nombre total de contraintes

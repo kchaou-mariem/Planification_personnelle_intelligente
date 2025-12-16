@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Contrainte {
-	private Long id; 
+	private int id; 
 	private String titre;
 	private TypeContrainte type;
 	private LocalTime dateHeureDeb;
@@ -22,13 +22,13 @@ public class Contrainte {
 	 * Jours de semaine pour répétition hebdomadaire (ex: MONDAY, WEDNESDAY)
 	 */
 	private List<DayOfWeek> joursSemaine = new ArrayList<>();
-	private Long utilisateurId; // chaque contrainte appartient à un seul utilisateur
+	private int utilisateurId; // chaque contrainte appartient à un seul utilisateur
 	private StatutContrainte statut = StatutContrainte.ACTIVE; // par défaut ACTIVE
 	
 	// Placeholder: la classe Utilisateur n'est pas encore créée
 	// private Utilisateur proprietaire; // à décommenter lorsque Utilisateur existera
 	
-	private static Long compteurId = 1L; // identifiants simples auto-incr
+	private static int compteurId = 1; // identifiants simples auto-incr
 	 
 	public Contrainte() {
 		super();
@@ -41,7 +41,7 @@ public class Contrainte {
 	 * Constructeur principal pour une contrainte ; les heures sont fournies via LocalTime.
 	 */
 	public Contrainte(String titre, TypeContrainte type, LocalTime dateHeureDeb, LocalTime dateHeureFin,
-				boolean repetitif, List<LocalDate> datesSpecifiques, List<DayOfWeek> joursSemaine) {
+				boolean repetitif, List<LocalDate> datesSpecifiques, List<DayOfWeek> joursSemaine, int utilisateurId) {
 		super();
 		this.id = compteurId;
 		this.titre = titre;
@@ -51,6 +51,7 @@ public class Contrainte {
 		this.repetitif = repetitif;
 		if (datesSpecifiques != null) this.datesSpecifiques = datesSpecifiques;
 		if (joursSemaine != null) this.joursSemaine = joursSemaine;
+		this.utilisateurId = utilisateurId;
 		compteurId++;
 	}
 
@@ -60,10 +61,10 @@ public class Contrainte {
 	public void setTitre(String titre) {
 		this.titre = titre;
 	}
-	public Long getId() {
+	public int getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 	public TypeContrainte getType() {
@@ -103,11 +104,11 @@ public class Contrainte {
 		this.joursSemaine = joursSemaine;
 	}
 
-	public Long getUtilisateurId() {
+	public int getUtilisateurId() {
 		return utilisateurId;
 	}
 
-	public void setUtilisateurId(Long utilisateurId) {
+	public void setUtilisateurId(int utilisateurId) {
 		this.utilisateurId = utilisateurId;
 	}
 

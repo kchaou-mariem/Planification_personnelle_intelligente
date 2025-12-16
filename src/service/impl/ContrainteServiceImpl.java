@@ -29,30 +29,48 @@ public class ContrainteServiceImpl implements ContrainteService {
     }
     
     @Override
-    public Long ajouterContrainte(Contrainte contrainte) {
+    public int ajouterContrainte(Contrainte contrainte) {
         if (contrainte == null) {
             System.err.println("Erreur: impossible d'ajouter une contrainte null");
-            return -1L;
+            return -1;
         }
         
         if (contrainte.getTitre() == null || contrainte.getTitre().trim().isEmpty()) {
             System.err.println("Erreur: le titre de la contrainte est requis");
-            return -1L;
+            return -1;
         }
         
         if (contrainte.getType() == null) {
             System.err.println("Erreur: le type de contrainte est requis");
-            return -1L;
+            return -1;
         }
         
         if (contrainte.getDateHeureDeb() == null || contrainte.getDateHeureFin() == null) {
             System.err.println("Erreur: les horaires de début et fin sont requis");
-            return -1L;
+            return -1;
         }
         
         if (contrainte.getDateHeureDeb().isAfter(contrainte.getDateHeureFin())) {
             System.err.println("Erreur: l'heure de début doit être antérieure à l'heure de fin");
-            return -1L;
+            return -1;
+        }
+        
+        // Validation: si repetitif est false, joursSemaine ne doit pas être rempli
+        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null && !contrainte.getJoursSemaine().isEmpty()) {
+            System.err.println("Erreur: impossible de remplir les jours de la semaine si la contrainte n'est pas répétitive");
+            return -1;
+        }
+        
+        // Validation: si repetitif est true, joursSemaine est obligatoire
+        if (contrainte.isRepetitif() && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
+            System.err.println("Erreur: une contrainte répétitive doit obligatoirement avoir des jours de la semaine");
+            return -1;
+        }
+        
+        // Validation: utilisateur ID requis
+        if (contrainte.getUtilisateurId() <= 0) {
+            System.err.println("Erreur: l'ID utilisateur est requis");
+            return -1;
         }
         
         // Par défaut, une nouvelle contrainte est ACTIVE
@@ -65,7 +83,7 @@ public class ContrainteServiceImpl implements ContrainteService {
     
     @Override
     public boolean modifierContrainte(Contrainte contrainte) {
-        if (contrainte == null || contrainte.getId() == null) {
+        if (contrainte == null || contrainte.getId() <= 0) {
             System.err.println("Erreur: impossible de modifier une contrainte sans ID");
             return false;
         }
@@ -77,12 +95,24 @@ public class ContrainteServiceImpl implements ContrainteService {
             }
         }
         
+        // Validation: si repetitif est false, joursSemaine ne doit pas être rempli
+        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null && !contrainte.getJoursSemaine().isEmpty()) {
+            System.err.println("Erreur: impossible de remplir les jours de la semaine si la contrainte n'est pas répétitive");
+            return false;
+        }
+        
+        // Validation: si repetitif est true, joursSemaine est obligatoire
+        if (contrainte.isRepetitif() && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
+            System.err.println("Erreur: une contrainte répétitive doit obligatoirement avoir des jours de la semaine");
+            return false;
+        }
+        
         return contrainteDAO.modifier(contrainte);
     }
     
     @Override
-    public boolean supprimerContrainte(Long idContrainte) {
-        if (idContrainte == null || idContrainte <= 0) {
+    public boolean supprimerContrainte(int idContrainte) {
+        if (idContrainte <= 0) {
             System.err.println("Erreur: ID invalide");
             return false;
         }
@@ -91,8 +121,8 @@ public class ContrainteServiceImpl implements ContrainteService {
     }
     
     @Override
-    public Optional<Contrainte> getContrainteById(Long idContrainte) {
-        if (idContrainte == null || idContrainte <= 0) {
+    public Optional<Contrainte> getContrainteById(int idContrainte) {
+        if (idContrainte <= 0) {
             return Optional.empty();
         }
         
@@ -155,7 +185,7 @@ public class ContrainteServiceImpl implements ContrainteService {
     }
     
     @Override
-    public boolean activerContrainte(Long idContrainte) {
+    public boolean activerContrainte(int idContrainte) {
         Optional<Contrainte> contrainteOpt = getContrainteById(idContrainte);
         
         if (contrainteOpt.isEmpty()) {
@@ -174,7 +204,7 @@ public class ContrainteServiceImpl implements ContrainteService {
     }
     
     @Override
-    public boolean desactiverContrainte(Long idContrainte) {
+    public boolean desactiverContrainte(int idContrainte) {
         Optional<Contrainte> contrainteOpt = getContrainteById(idContrainte);
         
         if (contrainteOpt.isEmpty()) {
@@ -193,7 +223,7 @@ public class ContrainteServiceImpl implements ContrainteService {
     }
     
     @Override
-    public boolean changerStatutContrainte(Long idContrainte, StatutContrainte newStatut) {
+    public boolean changerStatutContrainte(int idContrainte, StatutContrainte newStatut) {
         if (newStatut == null) {
             System.err.println("Erreur: le nouveau statut ne peut pas être null");
             return false;

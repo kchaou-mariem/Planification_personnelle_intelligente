@@ -99,16 +99,22 @@ public String getMotdepasse() {
 public void setMotdepasse(String motdepasse) {
 	this.motdepassehash = motdepasse;
 }
+public String getSalt() {
+    return salt;
+}
+public void setSalt(String salt) {
+	this.salt = salt;
+}
 public ArrayList<Activite> getListe_activite() {
 	return liste_activite;
 }
 public void setListe_activite(ArrayList<Activite> liste_activite) {
 	this.liste_activite = liste_activite;
-}Cont
+}
 public ArrayList<Contrainte> getListe_contrainte() {
 	return liste_contrainte;
 }
-public void setListe_contrainte(ArrayList<rainte> liste_contrainte) {
+public void setListe_contrainte(ArrayList<Contrainte> liste_contrainte) {
 	this.liste_contrainte = liste_contrainte;
 }
  public String toString() {
@@ -178,10 +184,116 @@ public void set_mot_de_passe(String motdepasse) {
 	this.motdepassehash=hash_password(motdepasse, this.salt);	
 }
 
-	 
+
+public boolean modifierNom(String nouveauNom) {
+	if (nouveauNom == null || nouveauNom.isEmpty()) {
+		System.out.println(" Erreur : Le nom ne peut pas etre vide");
+		return false;
+	}
+	this.nom = nouveauNom;
+	System.out.println("Nom modifié avec succès : " + this.nom);
+	return true;
+}
+
+public boolean modifierPrenom(String nouveauPrenom) {
+	if (nouveauPrenom == null || nouveauPrenom.isEmpty()) {
+		System.out.println("Erreur : Le prénom ne peut pas être vide");
+		return false;
+	}
+	this.prenom = nouveauPrenom;
+	System.out.println("Prénom modifié avec succès : " + this.prenom);
+	return true;
+}
+
+public boolean modifierEmail(String nouvelEmail) {
+	if (nouvelEmail == null || nouvelEmail.isEmpty()) {
+		System.out.println("Erreur : L'email ne peut pas être vide");
+		return false;
+	}
+	// Validation simple de l'email
+	if (!nouvelEmail.contains("@") || !nouvelEmail.contains(".")) {
+		System.out.println(" Erreur : Format d'email invalide");
+		return false;
+	}
+	this.email = nouvelEmail;
+	System.out.println("Email modifié avec succès : " + this.email);
+	return true;
+}
+
+
+public boolean modifierAge(int nouvelAge) {
+	if (nouvelAge < 0 || nouvelAge > 100) {
+		System.out.println("Erreur : Âge invalide (doit être entre 0 et 0)");
+		return false;
+	}
+	this.age = nouvelAge;
+	System.out.println("Âge modifié avec succès : " + this.age);
+	return true;
+}
+
+public boolean modifierGenre(String nouveauGenre) {
+	if (nouveauGenre == null || nouveauGenre.isEmpty()) {
+		System.out.println("Erreur : Le genre ne peut pas être vide");
+		return false;
+	}
 	
+	String genreNormal = nouveauGenre;
+	if (!genreNormal.equalsIgnoreCase("Homme") && !genreNormal.equalsIgnoreCase("Femme")) {
+		System.out.println("Erreur : Le genre doit être 'Homme' ou 'Femme'");
+		return false;
+	}
 	
+	this.genre = genreNormal.substring(0,1).toUpperCase() + genreNormal.substring(1).toLowerCase();
+	System.out.println("Genre modifié avec succès : " + this.genre);
+	return true;
+}
+
+
+public boolean modifierPoste(String nouveauPoste) {
+	if (nouveauPoste == null || nouveauPoste.trim().isEmpty()) {
+		System.out.println("Erreur : Le poste ne peut pas être vide");
+		return false;
+	}
+	this.poste = nouveauPoste;
+	System.out.println("Poste modifié avec succès : " + this.poste);
+	return true;
+}
+
+public boolean modifierProfil(String nouveauNom, String nouveauPrenom, String nouvelEmail, 
+                               int nouvelAge, String nouveauGenre, String nouveauPoste) {
+	boolean modificationReussie = false;
 	
+	if (nouveauNom != null) {
+		modificationReussie = modifierNom(nouveauNom) || modificationReussie;
+	}
 	
+	if (nouveauPrenom != null) {
+		modificationReussie = modifierPrenom(nouveauPrenom) || modificationReussie;
+	}
 	
+	if (nouvelEmail != null) {
+		modificationReussie = modifierEmail(nouvelEmail) || modificationReussie;
+	}
+	
+	if (nouvelAge >= 0 && nouvelAge <= 100) {
+		modificationReussie = modifierAge(nouvelAge) || modificationReussie;
+	}
+	
+	if (nouveauGenre != null) {
+		modificationReussie = modifierGenre(nouveauGenre) || modificationReussie;
+	}
+	
+	if (nouveauPoste != null) {
+		modificationReussie = modifierPoste(nouveauPoste) || modificationReussie;
+	}
+	
+	if (modificationReussie) {
+		System.out.println("\nProfil mis à jour avec succès!");
+	} else {
+		System.out.println("\nAucune modification n'a été effectuée");
+	}
+	
+	return modificationReussie;
+}
+
 }

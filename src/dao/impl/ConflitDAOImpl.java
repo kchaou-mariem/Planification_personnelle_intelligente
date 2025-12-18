@@ -632,4 +632,62 @@ public class ConflitDAOImpl implements ConflitDAO {
                 throw new IllegalArgumentException("Type de conflit inconnu: " + type);
         }
     }
+    
+    // ========== GESTION DE LA LIAISON CONFLIT_ACTIVITE ==========
+    
+    @Override
+    public boolean lierActiviteAuConflit(Long idConflit, Long idActivite) {
+        String sql = "INSERT INTO conflit_activite (id_conflit, id_activite) VALUES (?, ?)";
+        
+        try (Connection conn = Connect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setLong(1, idConflit);
+            stmt.setLong(2, idActivite);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            // Si duplicate key (lien existe déjà), on ignore silencieusement
+            if (e.getErrorCode() == 1062) { // MySQL duplicate entry
+                return true;
+            }
+            System.err.println("Erreur lors de la liaison conflit-activité: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public List<Long> getActivitesLieesAuConflit(Long idConflit) {
+        String sql = "SELECT id_activite FROM conflit_activite WHERE id_conflit = ?";
+        List<Long> idsActivites = new ArrayList<>();
+        
+        try (Connection conn = Connect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setLong(1, idConflit);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                idsActivites.add(rs.getLong("id_activite"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des activités liées: " + e.getMessage());
+        }
+        return idsActivites;
+    }
+    
+    @Override
+    public int supprimerLiensConflit(Long idConflit) { //quand on veut supprimer un conflit
+        String sql = "DELETE FROM conflit_activite WHERE id_conflit = ?";
+        
+        try (Connection conn = Connect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setLong(1, idConflit);
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la suppression des liens: " + e.getMessage());
+            return 0;
+        }
+    }
 }

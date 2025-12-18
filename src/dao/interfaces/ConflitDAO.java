@@ -202,4 +202,28 @@ public interface ConflitDAO {
      * @return Liste des conflits critiques
      */
     List<Conflit> getConflitsCritiques();
+    
+    // ========== GESTION DE LA LIAISON CONFLIT_ACTIVITE ==========
+    
+    /**
+     * Lier une activité à un conflit dans la table conflit_activite
+     * @param idConflit ID du conflit
+     * @param idActivite ID de l'activité
+     * @return true si l'insertion a réussi, false sinon
+     */
+    boolean lierActiviteAuConflit(Long idConflit, Long idActivite);
+    
+    /**
+     * Récupérer les IDs des activités liées à un conflit
+     * @param idConflit ID du conflit
+     * @return Liste des IDs des activités impliquées
+     */
+    List<Long> getActivitesLieesAuConflit(Long idConflit);
+    
+    /**
+     * Supprimer tous les liens d'un conflit dans conflit_activite
+     * @param idConflit ID du conflit
+     * @return Nombre de liens supprimés
+     */
+    int supprimerLiensConflit(Long idConflit);
 }

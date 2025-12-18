@@ -1,6 +1,4 @@
 package test;
-
-import Entities.*;
 import service.impl.ContrainteServiceImpl;
 
 import java.time.DayOfWeek;
@@ -9,6 +7,8 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import entities.*;
 
 /**
  * Classe de test pour le service ContrainteService.

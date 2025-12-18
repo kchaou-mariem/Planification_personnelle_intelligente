@@ -1,11 +1,12 @@
 package service;
 
-import Entities.Contrainte;
-import Entities.StatutContrainte;
-import Entities.TypeContrainte;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import entities.Contrainte;
+import entities.StatutContrainte;
+import entities.TypeContrainte;
 
 /**
  * Interface Service pour la gestion des contraintes. Elle définit les

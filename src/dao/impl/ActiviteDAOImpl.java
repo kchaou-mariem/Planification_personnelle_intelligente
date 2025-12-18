@@ -1,9 +1,9 @@
 package dao.impl;
 
-import Entities.Activite;
-import Entities.TypeActivite;
 import config.Connect;
 import dao.interfaces.ActiviteDAO;
+import entities.Activite;
+import entities.TypeActivite;
 
 import java.sql.*;
 import java.time.LocalDateTime;

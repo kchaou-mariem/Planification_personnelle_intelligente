@@ -1,4 +1,5 @@
-package Entities;
+package entities;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,9 +52,6 @@ public class Activite {
 		this.idUtilisateur = idUtilisateur;
 		this.completee = false;
 	}
-
-
-
 	public Long getIdActivite() {
 		return idActivite;
 	}
@@ -62,9 +60,11 @@ public class Activite {
 		this.idActivite = idActivite;
 	}
 
+
 	public String getTitre() {
 		return titre;
 	}
+
 
 	public void setTitre(String titre) {
 		this.titre = titre;
@@ -77,7 +77,6 @@ public class Activite {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
 
 	public TypeActivite getType() {
 		return type;
@@ -159,6 +158,7 @@ public class Activite {
 				+ ", type=" + type + ", duree=" + duree + ", priorite=" + priorite
 				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin 
 				+ ", idUtilisateur=" + idUtilisateur + ", completee=" + completee + "]";
+
 	}
 	public boolean ajouterActivite(String titre, TypeActivite type, int duree, int priorite,
             LocalDateTime deadline, LocalDateTime horaireDebut,
@@ -179,12 +179,12 @@ public class Activite {
 					horaireFin.isAfter(a.getHoraireDebut());
 
 			if (chevauchement) {
-				System.out.println("Conflit détecté avec l’activité : " + a.getTitre());
 				return false; // ❌ Chevauchement
 }
 }
 
-		// ✅ 3. Si tout est bon → on ajoute l’activité
+
+		// ✅ 3. Si tout est bon → on ajoute l'activité
 		this.titre = titre;
 		this.type = type;
 		this.duree = duree;
@@ -238,6 +238,7 @@ public class Activite {
 }
 
 // ✅ 3. Vérification de chevauchement (en ignorant l’activité courante)
+
 		for (Activite a : activites) {
 
 			if (a == activiteAModifier) continue;
@@ -247,7 +248,8 @@ public class Activite {
 					nouveauHoraireFin.isAfter(a.getHoraireDebut());
 
 			if (chevauchement) {
-				System.out.println("Conflit avec l’activité : " + a.getTitre());
+
+				System.out.println("Conflit avec l'activité : " + a.getTitre());
 				return false;
 }
 }

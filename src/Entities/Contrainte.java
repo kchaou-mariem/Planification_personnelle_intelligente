@@ -1,71 +1,50 @@
-package Entities;
+package entities;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class Contrainte {
-	private int id; 
+	private Long id; 
 	private String titre;
 	private TypeContrainte type;
-	private LocalTime dateHeureDeb;
-	private LocalTime dateHeureFin;
+	private LocalDate heureDeb;
+	private LocalDate heureFin;
 	private boolean repetitif;
-	/**
-	 * Dates spécifiques où la contrainte s'applique (ex: 2025-12-01, 2025-12-03)
-	 */
-	private List<LocalDate> datesSpecifiques = new ArrayList<>();
-	/**
-	 * Jours de semaine pour répétition hebdomadaire (ex: MONDAY, WEDNESDAY)
-	 */
-	private List<DayOfWeek> joursSemaine = new ArrayList<>();
-	private int utilisateurId; // chaque contrainte appartient à un seul utilisateur
-	private StatutContrainte statut = StatutContrainte.ACTIVE; // par défaut ACTIVE
+	private String jour;
+	private Long utilisateurId;
 	
-	// Placeholder: la classe Utilisateur n'est pas encore créée
-	// private Utilisateur proprietaire; // à décommenter lorsque Utilisateur existera
-	
-	private static int compteurId = 1; // identifiants simples auto-incr
+	private static Long compteurId = 1L;//La variable appartient à la classe, pas aux objets //1L : commence par 1,L:Long
+	 
+	 
 	 
 	public Contrainte() {
 		super();
-		this.id = compteurId;
-		compteurId++;
+        this.id = compteurId;
+        compteurId++;
 
 	}
 	
-	/**
-	 * Constructeur principal pour une contrainte ; les heures sont fournies via LocalTime.
-	 */
-	public Contrainte(String titre, TypeContrainte type, LocalTime dateHeureDeb, LocalTime dateHeureFin,
-				boolean repetitif, List<LocalDate> datesSpecifiques, List<DayOfWeek> joursSemaine, int utilisateurId) {
+	
+	public Contrainte(String titre,TypeContrainte type, LocalDate heureDeb, LocalDate heureFin, boolean repetitif, String jour) {
 		super();
-		this.id = compteurId;
-		this.titre = titre;
+        this.id = compteurId;
+        this.titre=titre;
 		this.type = type;
-		this.dateHeureDeb = dateHeureDeb;
-		this.dateHeureFin = dateHeureFin;
+		this.heureDeb = heureDeb;
+		this.heureFin = heureFin;
 		this.repetitif = repetitif;
-		if (datesSpecifiques != null) this.datesSpecifiques = datesSpecifiques;
-		if (joursSemaine != null) this.joursSemaine = joursSemaine;
-		this.utilisateurId = utilisateurId;
+		this.jour = jour;
 		compteurId++;
 	}
 
+
 	public String getTitre() {
 		return titre;
-	}		
+	}
 	public void setTitre(String titre) {
 		this.titre = titre;
 	}
-	public int getId() {
+	public Long getId() {
 		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
 	}
 	public TypeContrainte getType() {
 		return type;
@@ -73,17 +52,17 @@ public class Contrainte {
 	public void setType(TypeContrainte type) {
 		this.type = type;
 	}
-	public LocalTime getDateHeureDeb() {
-		return dateHeureDeb;
+	public LocalDate getHeureDeb() {
+		return heureDeb;
 	}
-	public void setDateHeureDeb(LocalTime dateHeureDeb) {
-		this.dateHeureDeb = dateHeureDeb;
+	public void setHeureDeb(LocalDate heureDeb) {
+		this.heureDeb = heureDeb;
 	}
-	public LocalTime getDateHeureFin() {
-		return dateHeureFin;
+	public LocalDate getHeureFin() {
+		return heureFin;
 	}
-	public void setDateHeureFin(LocalTime dateHeureFin) {
-		this.dateHeureFin = dateHeureFin;
+	public void setHeureFin(LocalDate heureFin) {
+		this.heureFin = heureFin;
 	}
 	public boolean isRepetitif() {
 		return repetitif;
@@ -91,56 +70,33 @@ public class Contrainte {
 	public void setRepetitif(boolean repetitif) {
 		this.repetitif = repetitif;
 	}
-	public List<LocalDate> getDatesSpecifiques() {
-		return datesSpecifiques;
+	public String getJour() {
+		return jour;
 	}
-	public void setDatesSpecifiques(List<LocalDate> datesSpecifiques) {
-		this.datesSpecifiques = datesSpecifiques;
-	}
-	public List<DayOfWeek> getJoursSemaine() {
-		return joursSemaine;
-	}
-	public void setJoursSemaine(List<DayOfWeek> joursSemaine) {
-		this.joursSemaine = joursSemaine;
+	public void setJour(String jour) {
+		this.jour = jour;
 	}
 
-	public int getUtilisateurId() {
+
+	public Long getUtilisateurId() {
 		return utilisateurId;
 	}
 
-	public void setUtilisateurId(int utilisateurId) {
-		this.utilisateurId = utilisateurId;
-	}
-
-	public StatutContrainte getStatut() {
-		return statut;
-	}
-
-	public void setStatut(StatutContrainte statut) {
-		this.statut = statut;
-	}
 
 	@Override
 	public String toString() {
-		return "Contrainte [id=" + id + ", titre=" + titre + ", type=" + type + ", dateHeureDeb=" + dateHeureDeb + ", dateHeureFin=" + dateHeureFin
-			+ ", repetitif=" + repetitif + ", datesSpecifiques=" + datesSpecifiques + ", joursSemaine=" + joursSemaine + ", statut=" + statut + "]";
+		return "Contrainte [titre=" + titre + ", type=" + type + ", heureDeb=" + heureDeb + ", heureFin=" + heureFin
+				+ ", repetitif=" + repetitif + ", jour=" + jour + "]";
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Contrainte other = (Contrainte) obj;
-		return Objects.equals(id, other.id);
-	}
-
+	
+	
+	
+	
 }
+
+
+	
+	 
+

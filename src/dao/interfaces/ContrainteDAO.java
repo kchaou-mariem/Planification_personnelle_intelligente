@@ -1,12 +1,12 @@
 package dao.interfaces;
 
-import Entities.Contrainte;
-import Entities.StatutContrainte;
-import Entities.TypeContrainte;
-
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import entities.Contrainte;
+import entities.StatutContrainte;
+import entities.TypeContrainte;
 
 /**
  * Interface DAO pour la table `contrainte`.

@@ -1,10 +1,11 @@
 package dao.interfaces;
 
-import Entities.Activite;
-import Entities.TypeActivite;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import entities.Activite;
+import entities.TypeActivite;
 
 /**
  * Interface DAO pour la gestion des activités dans la base de données

@@ -1,10 +1,11 @@
  package service;
 
-import Entities.Activite;
-import Entities.TypeActivite;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import entities.Activite;
+import entities.TypeActivite;
 
 /**
  * Interface Service pour la gestion métier des activités

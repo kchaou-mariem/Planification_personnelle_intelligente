@@ -1,12 +1,13 @@
 package test;
 
-import Entities.Activite;
-import Entities.TypeActivite;
 import service.ActiviteService;
 import service.impl.ActiviteServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import entities.Activite;
+import entities.TypeActivite;
 
 /**
  * Tests de validation et de cas limites pour le Service Activite

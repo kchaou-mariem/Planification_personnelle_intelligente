@@ -1,9 +1,9 @@
 package dao.impl;
 
-import Entities.Conflit;
-import Entities.TypeConflit;
 import config.Connect;
 import dao.interfaces.ConflitDAO;
+import entities.Conflit;
+import entities.TypeConflit;
 
 import java.sql.*;
 import java.time.LocalDateTime;

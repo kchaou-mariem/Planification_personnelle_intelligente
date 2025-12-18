@@ -2,7 +2,7 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Hôte : 127.0.0.1:3307
+-- Hôte : 127.0.0.1:3306
 -- Généré le : ven. 05 déc. 2025 à 08:59
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
@@ -122,6 +122,8 @@ CREATE TABLE `utilisateur` (
   `age` int(11) DEFAULT NULL,
   `genre` varchar(20) DEFAULT NULL,
   `poste` varchar(100) DEFAULT NULL,
+  `motdepassehash` varchar(255) DEFAULT NULL,
+  `salt` varchar(255) DEFAULT NULL,
   `date_creation` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -227,8 +229,12 @@ ALTER TABLE `contrainte`
 ALTER TABLE `statistique`
   ADD CONSTRAINT `statistique_ibfk_1` FOREIGN KEY (`id_activite`) REFERENCES `activite` (`id_activite`) ON DELETE CASCADE,
   ADD CONSTRAINT `statistique_ibfk_2` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE;
-COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+ALTER TABLE `utilisateur`
+ADD COLUMN `motdepassehash` varchar(255) DEFAULT NULL AFTER `poste`,
+ADD COLUMN `salt` varchar(255) DEFAULT NULL AFTER `motdepassehash`;
+COMMIT;

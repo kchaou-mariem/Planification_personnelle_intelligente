@@ -1,12 +1,14 @@
 package test;
 
-import Entities.Conflit;
-import Entities.TypeConflit;
-
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import dao.impl.ConflitDAOImpl;
+import entities.Conflit;
+import entities.TypeConflit;
 
 /**
  * Classe de test pour démontrer l'utilisation du ConflitDAO
@@ -305,3 +307,4 @@ public class TestConflitDAO {
         }
     }
 }
+

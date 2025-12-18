@@ -1,4 +1,4 @@
-package Entities;
+package entities;
 
 /**
  * Énumération des types d'activités disponibles
@@ -60,4 +60,5 @@ public enum TypeActivite {
 		}
 		throw new IllegalArgumentException("Type d'activité inconnu: " + label);
 	}
+
 }

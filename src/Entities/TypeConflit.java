@@ -1,4 +1,4 @@
-package Entities;
+package entities;
 public enum TypeConflit {
     CHEVAUCHEMENT_DES_ACTIVITES,
     VIOLATION_DE_CONTRAINTE,

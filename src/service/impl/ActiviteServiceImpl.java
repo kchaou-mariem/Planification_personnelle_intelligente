@@ -1,8 +1,8 @@
 package service.impl;
 
-import Entities.Activite;
-import Entities.TypeActivite;
 import dao.interfaces.ActiviteDAO;
+import entities.Activite;
+import entities.TypeActivite;
 import dao.impl.ActiviteDAOImpl;
 import service.ActiviteService;
 

@@ -115,27 +115,6 @@ public class ActiviteServiceImpl implements ActiviteService {
     }
     
     @Override
-    public List<Activite> obtenirActivitesNonCompletees(Long idUtilisateur) {
-        if (idUtilisateur == null || idUtilisateur <= 0) {
-            return List.of();
-        }
-        
-        return activiteDAO.getActivitesNonCompleteesByUtilisateur(idUtilisateur);
-    }
-    
-    @Override
-    public List<Activite> obtenirActivitesCompletees(Long idUtilisateur) {
-        if (idUtilisateur == null || idUtilisateur <= 0) {
-            return List.of();
-        }
-        
-        List<Activite> activites = activiteDAO.getByUtilisateur(idUtilisateur);
-        return activites.stream()
-                       .filter(Activite::isCompletee)
-                       .toList();
-    }
-    
-    @Override
     public List<Activite> obtenirActivitesDansLaPeriode(LocalDateTime dateDebut, LocalDateTime dateFin) {
         if (dateDebut == null || dateFin == null || dateDebut.isAfter(dateFin)) {
             return List.of();
@@ -172,24 +151,6 @@ public class ActiviteServiceImpl implements ActiviteService {
     }
     
     // ========== OPÉRATIONS MÉTIER ==========
-    
-    @Override
-    public boolean completerActivite(Long idActivite) {
-        if (idActivite == null || idActivite <= 0) {
-            return false;
-        }
-        
-        return activiteDAO.marquerCommeCompletee(idActivite);
-    }
-    
-    @Override
-    public boolean decompleterActivite(Long idActivite) {
-        if (idActivite == null || idActivite <= 0) {
-            return false;
-        }
-        
-        return activiteDAO.marquerCommeNonCompletee(idActivite);
-    }
     
     @Override
     public boolean verifierChevauchement(Long idUtilisateur, LocalDateTime horaireDebut, LocalDateTime horaireFin) {
@@ -244,27 +205,6 @@ public class ActiviteServiceImpl implements ActiviteService {
     }
     
     @Override
-    public boolean validerDuree(int duree, LocalDateTime horaireDebut, LocalDateTime horaireFin) {
-        if (duree <= 0) {
-            System.err.println("Erreur : La durée doit être supérieure à 0");
-            return false;
-        }
-        
-        if (horaireDebut == null || horaireFin == null) {
-            return false;
-        }
-        
-        long minutesCalculees = ChronoUnit.MINUTES.between(horaireDebut, horaireFin);
-        
-        if (duree != minutesCalculees) {
-            System.err.println("Erreur : La durée (" + duree + " min) ne correspond pas aux horaires (" + minutesCalculees + " min)");
-            return false;
-        }
-        
-        return true;
-    }
-    
-    @Override
     public boolean validerPriorite(int priorite) {
         if (priorite < 1 || priorite > 10) {
             System.err.println("Erreur : La priorité doit être entre 1 et 10");
@@ -291,55 +231,15 @@ public class ActiviteServiceImpl implements ActiviteService {
     }
     
     @Override
-    public int obtenirNombreActivitesCompletees() {
-        return activiteDAO.compterActivitesCompletees();
-    }
-    
-    @Override
-    public int obtenirNombreActivitesNonCompletees() {
-        return activiteDAO.compterActivitesNonCompletees();
-    }
-    
-    @Override
     public double obtenirTauxCompletion() {
-        int total = obtenirNombreTotalActivites();
-        if (total == 0) {
-            return 0.0;
-        }
-        
-        int completees = obtenirNombreActivitesCompletees();
-        return (completees * 100.0) / total;
+        // Méthode non applicable sans champ completee
+        return 0.0;
     }
     
     @Override
     public double obtenirTauxCompletionUtilisateur(Long idUtilisateur) {
-        if (idUtilisateur == null || idUtilisateur <= 0) {
-            return 0.0;
-        }
-        
-        int total = obtenirNombreActivitesUtilisateur(idUtilisateur);
-        if (total == 0) {
-            return 0.0;
-        }
-        
-        List<Activite> activites = obtenirActivitesUtilisateur(idUtilisateur);
-        long completees = activites.stream().filter(Activite::isCompletee).count();
-        
-        return (completees * 100.0) / total;
-    }
-    
-    @Override
-    public int obtenirDureeTotalActivites() {
-        return activiteDAO.calculerDureeTotalActivites();
-    }
-    
-    @Override
-    public int obtenirDureeTotalActivitesUtilisateur(Long idUtilisateur) {
-        if (idUtilisateur == null || idUtilisateur <= 0) {
-            return 0;
-        }
-        
-        return activiteDAO.calculerDureeTotalActivitesUtilisateur(idUtilisateur);
+        // Méthode non applicable sans champ completee
+        return 0.0;
     }
     
     @Override
@@ -381,7 +281,7 @@ public class ActiviteServiceImpl implements ActiviteService {
             return false;
         }
         
-        if (activite.getType() == null) {
+        if (activite.getTypeActivite() == null) {
             System.err.println("Erreur : Le type d'activité doit être spécifié");
             return false;
         }
@@ -390,11 +290,7 @@ public class ActiviteServiceImpl implements ActiviteService {
             return false;
         }
         
-        if (!validerDuree(activite.getDuree(), activite.getHoraireDebut(), activite.getHoraireFin())) {
-            return false;
-        }
-        
-        if (!validerPriorite(activite.getPriorite())) {
+        if (activite.getPriorite() != null && !validerPriorite(activite.getPriorite())) {
             return false;
         }
         

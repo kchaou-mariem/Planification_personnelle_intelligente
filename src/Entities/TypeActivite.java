@@ -7,7 +7,7 @@ public enum TypeActivite {
 	/**
 	 * Activités de sport et fitness
 	 */
-	sport("Sport"),
+	Sport("Sport"),
 	
 	/**
 	 * Activités d'étude et d'apprentissage

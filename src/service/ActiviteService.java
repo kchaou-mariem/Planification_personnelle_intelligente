@@ -66,20 +66,6 @@ public interface ActiviteService {
     List<Activite> obtenirActivitesParType(TypeActivite type);
     
     /**
-     * Récupérer les activités non complétées d'un utilisateur
-     * @param idUtilisateur L'ID de l'utilisateur
-     * @return Liste des activités non complétées
-     */
-    List<Activite> obtenirActivitesNonCompletees(Long idUtilisateur);
-    
-    /**
-     * Récupérer les activités complétées d'un utilisateur
-     * @param idUtilisateur L'ID de l'utilisateur
-     * @return Liste des activités complétées
-     */
-    List<Activite> obtenirActivitesCompletees(Long idUtilisateur);
-    
-    /**
      * Récupérer les activités dans une plage horaire
      * @param dateDebut Date de début
      * @param dateFin Date de fin
@@ -114,20 +100,6 @@ public interface ActiviteService {
     // ========== OPÉRATIONS MÉTIER ==========
     
     /**
-     * Marquer une activité comme complétée
-     * @param idActivite L'ID de l'activité
-     * @return true si l'opération a réussi
-     */
-    boolean completerActivite(Long idActivite);
-    
-    /**
-     * Marquer une activité comme non complétée
-     * @param idActivite L'ID de l'activité
-     * @return true si l'opération a réussi
-     */
-    boolean decompleterActivite(Long idActivite);
-    
-    /**
      * Vérifier s'il y a conflit de chevauchement avec d'autres activités
      * @param idUtilisateur L'ID de l'utilisateur
      * @param horaireDebut Horaire de début
@@ -154,15 +126,6 @@ public interface ActiviteService {
     boolean validerHoraires(LocalDateTime horaireDebut, LocalDateTime horaireFin);
     
     /**
-     * Vérifier si la durée d'une activité correspond aux horaires
-     * @param duree La durée en minutes
-     * @param horaireDebut Horaire de début
-     * @param horaireFin Horaire de fin
-     * @return true si la durée correspond
-     */
-    boolean validerDuree(int duree, LocalDateTime horaireDebut, LocalDateTime horaireFin);
-    
-    /**
      * Vérifier la priorité (doit être entre 1 et 10)
      * @param priorite La priorité
      * @return true si la priorité est valide
@@ -185,18 +148,6 @@ public interface ActiviteService {
     int obtenirNombreActivitesUtilisateur(Long idUtilisateur);
     
     /**
-     * Obtenir le nombre d'activités complétées
-     * @return Nombre d'activités complétées
-     */
-    int obtenirNombreActivitesCompletees();
-    
-    /**
-     * Obtenir le nombre d'activités non complétées
-     * @return Nombre d'activités non complétées
-     */
-    int obtenirNombreActivitesNonCompletees();
-    
-    /**
      * Obtenir le taux de complétude des activités
      * @return Pourcentage de complétude (0-100)
      */
@@ -208,19 +159,6 @@ public interface ActiviteService {
      * @return Pourcentage de complétude (0-100)
      */
     double obtenirTauxCompletionUtilisateur(Long idUtilisateur);
-    
-    /**
-     * Obtenir le nombre total de minutes d'activités
-     * @return Durée totale en minutes
-     */
-    int obtenirDureeTotalActivites();
-    
-    /**
-     * Obtenir le nombre total de minutes pour un utilisateur
-     * @param idUtilisateur L'ID de l'utilisateur
-     * @return Durée totale en minutes
-     */
-    int obtenirDureeTotalActivitesUtilisateur(Long idUtilisateur);
     
     /**
      * Obtenir les activités avec deadline proche

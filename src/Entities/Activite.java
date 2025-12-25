@@ -8,49 +8,46 @@ import java.util.List;
 public class Activite {
 	private Long idActivite;
 	private String titre;
+	private TypeActivite typeActivite;
 	private String description;
-	private TypeActivite type;
-	private int duree;
-	private int priorite;
+	private Integer priorite;
 	private LocalDateTime deadline;
 	private LocalDateTime horaireDebut;
 	private LocalDateTime horaireFin;
 	private Long idUtilisateur;
-	private boolean completee;
+	private LocalDateTime dateCreation;
 	List<Activite> listeActivites = new ArrayList<>();
 
 	// Constructeur complet avec ID
-	public Activite(Long idActivite, String titre, String description, TypeActivite type, int duree, 
-			int priorite, LocalDateTime deadline, LocalDateTime horaireDebut, LocalDateTime horaireFin,
-			Long idUtilisateur, boolean completee) {
+	public Activite(Long idActivite, String titre, TypeActivite typeActivite, String description,
+			Integer priorite, LocalDateTime deadline, LocalDateTime horaireDebut, LocalDateTime horaireFin,
+			Long idUtilisateur, LocalDateTime dateCreation) {
 		super();
 		this.idActivite = idActivite;
 		this.titre = titre;
+		this.typeActivite = typeActivite;
 		this.description = description;
-		this.type = type;
-		this.duree = duree;
 		this.priorite = priorite;
 		this.deadline = deadline;
 		this.horaireDebut = horaireDebut;
 		this.horaireFin = horaireFin;
 		this.idUtilisateur = idUtilisateur;
-		this.completee = completee;
+		this.dateCreation = dateCreation;
 	}
 
 	// Constructeur sans ID (pour création)
-	public Activite(String titre, String description, TypeActivite type, int duree, int priorite, LocalDateTime deadline,
-			LocalDateTime horaireDebut, LocalDateTime horaireFin, Long idUtilisateur) {
+	public Activite(String titre, TypeActivite typeActivite, String description, Integer priorite,
+			LocalDateTime deadline, LocalDateTime horaireDebut, LocalDateTime horaireFin, Long idUtilisateur) {
 		super();
 		this.titre = titre;
+		this.typeActivite = typeActivite;
 		this.description = description;
-		this.type = type;
-		this.duree = duree;
 		this.priorite = priorite;
 		this.deadline = deadline;
 		this.horaireDebut = horaireDebut;
 		this.horaireFin = horaireFin;
 		this.idUtilisateur = idUtilisateur;
-		this.completee = false;
+		this.dateCreation = LocalDateTime.now();
 	}
 	public Long getIdActivite() {
 		return idActivite;
@@ -78,32 +75,20 @@ public class Activite {
 		this.description = description;
 	}
 
-	public TypeActivite getType() {
-		return type;
+	public TypeActivite getTypeActivite() {
+		return typeActivite;
 	}
 
-
-	public void setType(TypeActivite type) {
-		this.type = type;
+	public void setTypeActivite(TypeActivite typeActivite) {
+		this.typeActivite = typeActivite;
 	}
 
-
-	public int getDuree() {
-		return duree;
-	}
-
-
-	public void setDuree(int duree) {
-		this.duree = duree;
-	}
-
-
-	public int getPriorite() {
+	public Integer getPriorite() {
 		return priorite;
 	}
 
 
-	public void setPriorite(int priorite) {
+	public void setPriorite(Integer priorite) {
 		this.priorite = priorite;
 	}
 
@@ -145,22 +130,21 @@ public class Activite {
 		this.idUtilisateur = idUtilisateur;
 	}
 
-	public boolean isCompletee() {
-		return completee;
+	public LocalDateTime getDateCreation() {
+		return dateCreation;
 	}
 
-	public void setCompletee(boolean completee) {
-		this.completee = completee;
+	public void setDateCreation(LocalDateTime dateCreation) {
+		this.dateCreation = dateCreation;
 	}
 	@Override
 	public String toString() {
-		return "Activite [idActivite=" + idActivite + ", titre=" + titre + ", description=" + description 
-				+ ", type=" + type + ", duree=" + duree + ", priorite=" + priorite
-				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin 
-				+ ", idUtilisateur=" + idUtilisateur + ", completee=" + completee + "]";
-
+		return "Activite [idActivite=" + idActivite + ", titre=" + titre + ", typeActivite=" + typeActivite
+				+ ", description=" + description + ", priorite=" + priorite
+				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin
+				+ ", idUtilisateur=" + idUtilisateur + ", dateCreation=" + dateCreation + "]";
 	}
-	public boolean ajouterActivite(String titre, TypeActivite type, int duree, int priorite,
+	public boolean ajouterActivite(String titre, TypeActivite typeActivite, Integer priorite,
             LocalDateTime deadline, LocalDateTime horaireDebut,
             LocalDateTime horaireFin,
             List<Activite> activitesExistantes) {
@@ -169,32 +153,30 @@ public class Activite {
 		if (horaireDebut.isAfter(horaireFin) || horaireDebut.isEqual(horaireFin)) {
 			System.out.println("Erreur : L'horaire de début doit être avant l'horaire de fin.");
 			return false;
-}
+		}
 
 		// ✅ 2. Vérification de chevauchement avec les autres activités
 		for (Activite a : activitesExistantes) {
-
 			boolean chevauchement =
 					horaireDebut.isBefore(a.getHoraireFin()) &&
 					horaireFin.isAfter(a.getHoraireDebut());
 
 			if (chevauchement) {
 				return false; // ❌ Chevauchement
-}
-}
-
+			}
+		}
 
 		// ✅ 3. Si tout est bon → on ajoute l'activité
 		this.titre = titre;
-		this.type = type;
-		this.duree = duree;
+		this.typeActivite = typeActivite;
 		this.priorite = priorite;
 		this.deadline = deadline;
 		this.horaireDebut = horaireDebut;
 		this.horaireFin = horaireFin;
+		this.dateCreation = LocalDateTime.now();
 
 		return true; 
-}
+	}
 	public static boolean supprimerActivite(String titre, List<Activite> activites) {
 
 	    for (int i = 0; i < activites.size(); i++) {

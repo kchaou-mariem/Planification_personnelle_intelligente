@@ -19,23 +19,25 @@ public class ActiviteDAOImpl implements ActiviteDAO {
 
     @Override
     public Long ajouter(Activite activite) {
-        String sql = "INSERT INTO activite (titre, description, type_activite, duree, priorite, deadline, " +
-                    "horaire_debut, horaire_fin, id_utilisateur, completee) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO activite (titre, type_activite, description, priorite, deadline, " +
+                    "horaire_debut, horaire_fin, id_utilisateur) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = Connect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, activite.getTitre());
-            stmt.setString(2, activite.getDescription());
-            stmt.setString(3, convertirTypeActiviteJava(activite.getType()));
-            stmt.setInt(4, activite.getDuree());
-            stmt.setInt(5, activite.getPriorite());
-            stmt.setTimestamp(6, Timestamp.valueOf(activite.getDeadline()));
-            stmt.setTimestamp(7, Timestamp.valueOf(activite.getHoraireDebut()));
-            stmt.setTimestamp(8, Timestamp.valueOf(activite.getHoraireFin()));
-            stmt.setLong(9, activite.getIdUtilisateur());
-            stmt.setInt(10, activite.isCompletee() ? 1 : 0);
+            stmt.setString(2, convertirTypeActiviteJava(activite.getTypeActivite()));
+            stmt.setString(3, activite.getDescription());
+            if (activite.getPriorite() != null) {
+                stmt.setInt(4, activite.getPriorite());
+            } else {
+                stmt.setNull(4, Types.INTEGER);
+            }
+            stmt.setTimestamp(5, activite.getDeadline() != null ? Timestamp.valueOf(activite.getDeadline()) : null);
+            stmt.setTimestamp(6, activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
+            stmt.setTimestamp(7, activite.getHoraireFin() != null ? Timestamp.valueOf(activite.getHoraireFin()) : null);
+            stmt.setLong(8, activite.getIdUtilisateur());
             
             int affectedRows = stmt.executeUpdate();
             
@@ -55,23 +57,25 @@ public class ActiviteDAOImpl implements ActiviteDAO {
 
     @Override
     public boolean modifier(Activite activite) {
-        String sql = "UPDATE activite SET titre = ?, description = ?, type_activite = ?, duree = ?, " +
-                    "priorite = ?, deadline = ?, horaire_debut = ?, horaire_fin = ?, completee = ? " +
+        String sql = "UPDATE activite SET titre = ?, type_activite = ?, description = ?, priorite = ?, " +
+                    "deadline = ?, horaire_debut = ?, horaire_fin = ? " +
                     "WHERE id_activite = ?";
         
         try (Connection conn = Connect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, activite.getTitre());
-            stmt.setString(2, activite.getDescription());
-            stmt.setString(3, convertirTypeActiviteJava(activite.getType()));
-            stmt.setInt(4, activite.getDuree());
-            stmt.setInt(5, activite.getPriorite());
-            stmt.setTimestamp(6, Timestamp.valueOf(activite.getDeadline()));
-            stmt.setTimestamp(7, Timestamp.valueOf(activite.getHoraireDebut()));
-            stmt.setTimestamp(8, Timestamp.valueOf(activite.getHoraireFin()));
-            stmt.setInt(9, activite.isCompletee() ? 1 : 0);
-            stmt.setLong(10, activite.getIdActivite());
+            stmt.setString(2, convertirTypeActiviteJava(activite.getTypeActivite()));
+            stmt.setString(3, activite.getDescription());
+            if (activite.getPriorite() != null) {
+                stmt.setInt(4, activite.getPriorite());
+            } else {
+                stmt.setNull(4, Types.INTEGER);
+            }
+            stmt.setTimestamp(5, activite.getDeadline() != null ? Timestamp.valueOf(activite.getDeadline()) : null);
+            stmt.setTimestamp(6, activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
+            stmt.setTimestamp(7, activite.getHoraireFin() != null ? Timestamp.valueOf(activite.getHoraireFin()) : null);
+            stmt.setLong(8, activite.getIdActivite());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -204,65 +208,6 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     }
 
     @Override
-    public List<Activite> getActivitesNonCompletees() {
-        String sql = "SELECT * FROM activite WHERE completee = 0 ORDER BY deadline ASC";
-        List<Activite> activites = new ArrayList<>();
-        
-        try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                activites.add(mapResultSetToActivite(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des activités non complétées: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return activites;
-    }
-
-    @Override
-    public List<Activite> getActivitesCompletees() {
-        String sql = "SELECT * FROM activite WHERE completee = 1 ORDER BY horaire_debut DESC";
-        List<Activite> activites = new ArrayList<>();
-        
-        try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                activites.add(mapResultSetToActivite(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des activités complétées: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return activites;
-    }
-
-    @Override
-    public List<Activite> getActivitesNonCompleteesByUtilisateur(Long idUtilisateur) {
-        String sql = "SELECT * FROM activite WHERE id_utilisateur = ? AND completee = 0 ORDER BY deadline ASC";
-        List<Activite> activites = new ArrayList<>();
-        
-        try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setLong(1, idUtilisateur);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                activites.add(mapResultSetToActivite(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des activités non complétées: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return activites;
-    }
-
-    @Override
     public List<Activite> getByPeriode(LocalDateTime dateDebut, LocalDateTime dateFin) {
         String sql = "SELECT * FROM activite WHERE horaire_debut BETWEEN ? AND ? ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
@@ -310,7 +255,7 @@ public class ActiviteDAOImpl implements ActiviteDAO {
 
     @Override
     public List<Activite> getActivitesAvecDeadlineProche(int joursAvance) {
-        String sql = "SELECT * FROM activite WHERE completee = 0 AND deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ? DAY) " +
+        String sql = "SELECT * FROM activite WHERE deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ? DAY) " +
                     "ORDER BY deadline ASC";
         List<Activite> activites = new ArrayList<>();
         
@@ -400,62 +345,6 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     }
 
     // ========== OPÉRATIONS MÉTIER ==========
-
-    @Override
-    public boolean marquerCommeCompletee(Long idActivite) {
-        String sql = "UPDATE activite SET completee = 1 WHERE id_activite = ?";
-        
-        try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setLong(1, idActivite);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du marquage de l'activité comme complétée: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public int marquerPlusieursCommeCompletees(List<Long> idsActivites) {
-        if (idsActivites == null || idsActivites.isEmpty()) {
-            return 0;
-        }
-        
-        String placeholders = String.join(",", Collections.nCopies(idsActivites.size(), "?"));
-        String sql = "UPDATE activite SET completee = 1 WHERE id_activite IN (" + placeholders + ")";
-        
-        try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            for (int i = 0; i < idsActivites.size(); i++) {
-                stmt.setLong(i + 1, idsActivites.get(i));
-            }
-            
-            return stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du marquage de plusieurs activités: " + e.getMessage());
-            e.printStackTrace();
-            return 0;
-        }
-    }
-
-    @Override
-    public boolean marquerCommeNonCompletee(Long idActivite) {
-        String sql = "UPDATE activite SET completee = 0 WHERE id_activite = ?";
-        
-        try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setLong(1, idActivite);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du marquage de l'activité comme non complétée: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     @Override
     public boolean hasChevauchement(Long idActivite, LocalDateTime horaireDebut, LocalDateTime horaireFin) {
@@ -568,42 +457,6 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     }
 
     @Override
-    public int compterActivitesCompletees() {
-        String sql = "SELECT COUNT(*) FROM activite WHERE completee = 1";
-        
-        try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du comptage des activités complétées: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Override
-    public int compterActivitesNonCompletees() {
-        String sql = "SELECT COUNT(*) FROM activite WHERE completee = 0";
-        
-        try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du comptage des activités non complétées: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Override
     public int compterParType(TypeActivite type) {
         String sql = "SELECT COUNT(*) FROM activite WHERE type_activite = ?";
         
@@ -618,46 +471,6 @@ public class ActiviteDAOImpl implements ActiviteDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors du comptage des activités par type: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Override
-    public int calculerDureeTotalActivites() {
-        String sql = "SELECT SUM(duree) FROM activite";
-        
-        try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            if (rs.next()) {
-                Integer total = (Integer) rs.getObject(1);
-                return total != null ? total : 0;
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du calcul de la durée totale: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Override
-    public int calculerDureeTotalActivitesUtilisateur(Long idUtilisateur) {
-        String sql = "SELECT SUM(duree) FROM activite WHERE id_utilisateur = ?";
-        
-        try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setLong(1, idUtilisateur);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                Integer total = (Integer) rs.getObject(1);
-                return total != null ? total : 0;
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors du calcul de la durée totale: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;
@@ -711,21 +524,24 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     private Activite mapResultSetToActivite(ResultSet rs) throws SQLException {
         Long id = rs.getLong("id_activite");
         String titre = rs.getString("titre");
-        String description = rs.getString("description");
         String typeActivite = rs.getString("type_activite");
-        int duree = rs.getInt("duree");
-        int priorite = rs.getInt("priorite");
-        LocalDateTime deadline = rs.getTimestamp("deadline").toLocalDateTime();
-        LocalDateTime horaireDebut = rs.getTimestamp("horaire_debut").toLocalDateTime();
-        LocalDateTime horaireFin = rs.getTimestamp("horaire_fin").toLocalDateTime();
+        String description = rs.getString("description");
+        Integer priorite = (Integer) rs.getObject("priorite");
+        Timestamp deadlineTs = rs.getTimestamp("deadline");
+        LocalDateTime deadline = deadlineTs != null ? deadlineTs.toLocalDateTime() : null;
+        Timestamp horaireDebutTs = rs.getTimestamp("horaire_debut");
+        LocalDateTime horaireDebut = horaireDebutTs != null ? horaireDebutTs.toLocalDateTime() : null;
+        Timestamp horaireFinTs = rs.getTimestamp("horaire_fin");
+        LocalDateTime horaireFin = horaireFinTs != null ? horaireFinTs.toLocalDateTime() : null;
         Long idUtilisateur = rs.getLong("id_utilisateur");
-        boolean completee = rs.getInt("completee") == 1;
+        Timestamp dateCreationTs = rs.getTimestamp("date_creation");
+        LocalDateTime dateCreation = dateCreationTs != null ? dateCreationTs.toLocalDateTime() : null;
         
         // Convertir le type d'activité
         TypeActivite type = convertirTypeActiviteBD(typeActivite);
         
-        return new Activite(id, titre, description, type, duree, priorite, deadline, 
-                           horaireDebut, horaireFin, idUtilisateur, completee);
+        return new Activite(id, titre, type, description, priorite, deadline, 
+                           horaireDebut, horaireFin, idUtilisateur, dateCreation);
     }
     
     /**
@@ -734,7 +550,7 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     private TypeActivite convertirTypeActiviteBD(String typeBD) {
         switch (typeBD) {
             case "Sport":
-                return TypeActivite.sport;
+                return TypeActivite.Sport;
             case "Étude":
             case "Etude":
                 return TypeActivite.Etude;
@@ -754,7 +570,7 @@ public class ActiviteDAOImpl implements ActiviteDAO {
      */
     private String convertirTypeActiviteJava(TypeActivite type) {
         switch (type) {
-            case sport:
+            case Sport:
                 return "Sport";
             case Etude:
                 return "Étude";

@@ -173,7 +173,7 @@ public class ConflitServiceImpl implements ConflitService {
 			throw new IllegalArgumentException("Type de conflit invalide");
 		}
 		
-		List<Conflit> conflits = conflitDAO.getConflitsParType(type);
+		List<Conflit> conflits = conflitDAO.getByType(type);
 		
 		// Logique métier: filtrer par utilisateur
 		List<Conflit> conflitsUtilisateur = new ArrayList<>();
@@ -464,8 +464,11 @@ public class ConflitServiceImpl implements ConflitService {
 	}
 
 	@Override
-	public int supprimerConflitsResolusAvant(LocalDateTime date) {
+	public int supprimerConflitsResolusAvant(Long idUtilisateur, LocalDateTime date) {
 		// Validation des paramètres
+		if (idUtilisateur == null || idUtilisateur <= 0) {
+			throw new IllegalArgumentException("ID utilisateur invalide");
+		}
 		if (date == null) {
 			throw new IllegalArgumentException("Date invalide");
 		}
@@ -475,7 +478,8 @@ public class ConflitServiceImpl implements ConflitService {
 			throw new IllegalArgumentException("La date ne peut pas être dans le futur");
 		}
 		
-		List<Conflit> conflitsResolus = conflitDAO.getConflitsResolus();
+		// Récupérer les conflits résolus de l'utilisateur
+		List<Conflit> conflitsResolus = getConflitsResolusUtilisateur(idUtilisateur);
 		int supprimes = 0;
 		
 		// Logique métier: filtrer et supprimer uniquement les conflits résolus avant la date

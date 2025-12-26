@@ -11,7 +11,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAOinterface {
     
     @Override
     public boolean inserer(Utilisateur utilisateur) {
-        String sql = "INSERT INTO utilisateur (nom, prenom, email, age, genre, poste, motdepassehash, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO utilisateur (nom, prenom, email, age, genre, poste, mot_de_passe_hash, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = Connect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -47,7 +47,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAOinterface {
     }
     @Override
     public boolean modifier(Utilisateur utilisateur) {
-        String sql = "UPDATE utilisateur SET nom=?, prenom=?, email=?, age=?, genre=?, poste=?, motdepassehash=?, salt=? WHERE id_utilisateur=?";
+        String sql = "UPDATE utilisateur SET nom=?, prenom=?, email=?, age=?, genre=?, poste=?, mot_de_passe_hash=?, salt=? WHERE id_utilisateur=?";
         
         try (Connection conn = Connect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -170,7 +170,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAOinterface {
     }
     /*Au lieu de réecrire ce code dans grtbyid(), getall(), getbyemail() on l'écrit une seule fois ici */
     private Utilisateur mapResultSetToUtilisateur(ResultSet rs) throws SQLException {
-        return new Utilisateur(
+        Utilisateur utilisateur = new Utilisateur(
             rs.getInt("id_utilisateur"),
             rs.getString("nom"),
             rs.getString("prenom"),
@@ -178,10 +178,13 @@ public class UtilisateurDAOImpl implements UtilisateurDAOinterface {
             rs.getInt("age"),
             rs.getString("genre"),
             rs.getString("poste"),
-            rs.getString("motdepassehash")
+            rs.getString("mot_de_passe_hash")
         );
+        // Récupérer le salt depuis la base de données
+        utilisateur.setSalt(rs.getString("salt"));
+        return utilisateur;
     }
     private String getSalt(Utilisateur utilisateur) {
-    return null;
+        return utilisateur.getSalt();
     }
 }  

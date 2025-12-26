@@ -225,8 +225,37 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         }
         
         // Vérifier le mot de passe avec le hashage
-        // TODO: Implémenter la vérification du hash
+        String salt = utilisateur.getSalt();
+        if (salt == null || utilisateur.getMotdepasse() == null) {
+            System.out.println("Erreur : Données d'authentification manquantes");
+            return null;
+        }
         
-        return utilisateur;
+        // Hasher le mot de passe fourni avec le salt stocké
+        String hashedPassword = hashPassword(motDePasse, salt);
+        
+        // Comparer avec le hash stocké
+        if (hashedPassword != null && hashedPassword.equals(utilisateur.getMotdepasse())) {
+            System.out.println("Authentification réussie pour : " + email);
+            return utilisateur;
+        } else {
+            System.out.println("Erreur : Mot de passe incorrect");
+            return null;
+        }
+    }
+    
+    /**
+     * Hash un mot de passe avec un salt en utilisant SHA-256
+     */
+    private String hashPassword(String motdepasse, String salt) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            String texte = motdepasse + salt;
+            byte[] hash = digest.digest(texte.getBytes());
+            return java.util.Base64.getEncoder().encodeToString(hash);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            System.err.println("Erreur lors du hashage du mot de passe.");
+            return null;
+        }
     }
 }

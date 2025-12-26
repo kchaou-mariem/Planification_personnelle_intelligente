@@ -221,7 +221,7 @@ public boolean modifierEmail(String nouvelEmail) {
 
 public boolean modifierAge(int nouvelAge) {
 	if (nouvelAge < 0 || nouvelAge > 100) {
-		System.out.println("Erreur : Âge invalide (doit être entre 0 et 0)");
+		System.out.println("Erreur : Âge invalide (doit être entre 0 et 100)");
 		return false;
 	}
 	this.age = nouvelAge;

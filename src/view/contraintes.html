@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Contraintes - Planification Personnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .constraint-card {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-md);
+        }
+
+        .constraint-card.inactive {
+            opacity: 0.6;
+        }
+
+        .constraint-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .constraint-content {
+            flex: 1;
+        }
+
+        .constraint-title {
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+
+        .constraint-time {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .constraint-days {
+            display: flex;
+            gap: var(--space-xs);
+            margin-top: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .day-badge {
+            padding: 2px 8px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border-color);
+            border-radius: 26px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--primary);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(22px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📅</div><span class="sidebar-brand">Planificateur</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu</div>
+                    <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span
+                            class="nav-label">Tableau de bord</span></a>
+                    <a href="activites.html" class="nav-item"><span class="nav-icon">📌</span><span
+                            class="nav-label">Activités</span></a>
+                    <a href="contraintes.html" class="nav-item active"><span class="nav-icon">⏰</span><span
+                            class="nav-label">Contraintes</span></a>
+                    <a href="conflits.html" class="nav-item"><span class="nav-icon">⚠️</span><span
+                            class="nav-label">Conflits</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Paramètres</div>
+                    <a href="profil.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Mon
+                            profil</span></a>
+                    <a href="#" class="nav-item" onclick="Utils.toggleTheme(); return false;"><span
+                            class="nav-icon">🌓</span><span class="nav-label">Thème</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilisateur</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-full mt-md" onclick="Auth.logout()">Déconnexion</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="navbar">
+                <h1 class="navbar-title">Mes Contraintes</h1>
+                <button class="btn btn-primary" onclick="Utils.openModal('constraintModal'); resetForm();">+ Nouvelle
+                    contrainte</button>
+            </div>
+
+            <div class="mt-xl" id="constraintsList">
+                <p class="text-center text-muted">Chargement...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Constraint Modal -->
+    <div class="modal-overlay" id="constraintModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Nouvelle contrainte</h3>
+                <button class="modal-close" onclick="Utils.closeModal('constraintModal')">✕</button>
+            </div>
+            <form id="constraintForm">
+                <input type="hidden" name="id" id="constraintId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Titre *</label>
+                        <input type="text" name="titre" id="titre" class="form-input"
+                            placeholder="Ex: Heures de sommeil" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type *</label>
+                        <select name="type" id="type" class="form-select" required>
+                            <option value="Sommeil">🌙 Sommeil</option>
+                            <option value="Travail">💼 Travail</option>
+                            <option value="RDV">📅 RDV</option>
+                            <option value="Repos">🛋️ Repos</option>
+                            <option value="Cours">🎓 Cours</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Heure de début *</label>
+                        <input type="time" name="heureDebut" id="heureDebut" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Heure de fin *</label>
+                        <input type="time" name="heureFin" id="heureFin" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Répétitif</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="repetitif" id="repetitif">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="joursGroup">
+                        <label class="form-label">Jours de la semaine</label>
+                        <div class="flex gap-sm flex-wrap">
+                            <label><input type="checkbox" name="jours" value="MONDAY"> Lun</label>
+                            <label><input type="checkbox" name="jours" value="TUESDAY"> Mar</label>
+                            <label><input type="checkbox" name="jours" value="WEDNESDAY"> Mer</label>
+                            <label><input type="checkbox" name="jours" value="THURSDAY"> Jeu</label>
+                            <label><input type="checkbox" name="jours" value="FRIDAY"> Ven</label>
+                            <label><input type="checkbox" name="jours" value="SATURDAY"> Sam</label>
+                            <label><input type="checkbox" name="jours" value="SUNDAY"> Dim</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="Utils.closeModal('constraintModal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireAuth()) throw new Error('Not authenticated');
+        const userId = Auth.getUserId();
+        let constraints = [];
+        let editingId = null;
+
+        document.getElementById('userName').textContent = Auth.getUserFullName();
+        document.getElementById('userAvatar').textContent = Auth.getUserInitials();
+
+        const dayLabels = { MONDAY: 'Lun', TUESDAY: 'Mar', WEDNESDAY: 'Mer', THURSDAY: 'Jeu', FRIDAY: 'Ven', SATURDAY: 'Sam', SUNDAY: 'Dim' };
+
+        async function loadConstraints() {
+            try {
+                constraints = await Api.contraintes.getByUser(userId) || [];
+                renderConstraints();
+            } catch (error) {
+                document.getElementById('constraintsList').innerHTML = '<p class="text-center text-muted">Erreur de chargement</p>';
+            }
+        }
+
+        function renderConstraints() {
+            const container = document.getElementById('constraintsList');
+            if (constraints.length === 0) {
+                container.innerHTML = '<div class="text-center" style="padding: var(--space-2xl);"><div style="font-size: 4rem;">⏰</div><h3>Aucune contrainte</h3><p class="text-muted">Ajoutez vos contraintes horaires</p></div>';
+                return;
+            }
+
+            container.innerHTML = constraints.map(c => {
+                const type = Utils.getConstraintType(c.type);
+                const isActive = c.statut === 'ACTIVE';
+                const jours = c.jours ? (typeof c.jours === 'string' ? JSON.parse(c.jours) : c.jours) : [];
+
+                return `
+                    <div class="constraint-card ${!isActive ? 'inactive' : ''}">
+                        <div class="constraint-icon">${type.icon}</div>
+                        <div class="constraint-content">
+                            <div class="constraint-title">${c.titre || type.label}</div>
+                            <div class="constraint-time">🕐 ${c.heureDebut || c.dateHeureDeb} - ${c.heureFin || c.dateHeureFin}</div>
+                            ${c.repetitif ? `<div class="constraint-days">${jours.map(j => `<span class="day-badge">${dayLabels[j] || j}</span>`).join('')}</div>` : ''}
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleStatus(${c.id || c.idContrainte})">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="btn btn-sm btn-secondary" onclick="editConstraint(${c.id || c.idContrainte})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteConstraint(${c.id || c.idContrainte})">🗑️</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('constraintForm').reset();
+            document.getElementById('modalTitle').textContent = 'Nouvelle contrainte';
+            document.getElementById('submitBtn').textContent = 'Créer';
+        }
+
+        function editConstraint(id) {
+            const c = constraints.find(x => (x.id || x.idContrainte) === id);
+            if (!c) return;
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Modifier la contrainte';
+            document.getElementById('submitBtn').textContent = 'Enregistrer';
+            document.getElementById('constraintId').value = id;
+            document.getElementById('titre').value = c.titre || '';
+            document.getElementById('type').value = c.type;
+            document.getElementById('heureDebut').value = c.heureDebut || c.dateHeureDeb;
+            document.getElementById('heureFin').value = c.heureFin || c.dateHeureFin;
+            document.getElementById('repetitif').checked = c.repetitif;
+            Utils.openModal('constraintModal');
+        }
+
+        async function toggleStatus(id) {
+            try {
+                await Api.contraintes.toggleStatus(id);
+                loadConstraints();
+            } catch (error) {
+                Utils.toast('Erreur', 'danger');
+            }
+        }
+
+        async function deleteConstraint(id) {
+            if (!confirm('Supprimer cette contrainte ?')) return;
+            try {
+                await Api.contraintes.delete(id);
+                Utils.toast('Contrainte supprimée', 'success');
+                loadConstraints();
+            } catch (error) {
+                Utils.toast('Erreur', 'danger');
+            }
+        }
+
+        document.getElementById('constraintForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                titre: document.getElementById('titre').value,
+                type: document.getElementById('type').value,
+                dateHeureDeb: document.getElementById('heureDebut').value,
+                dateHeureFin: document.getElementById('heureFin').value,
+                repetitif: document.getElementById('repetitif').checked,
+                utilisateurId: userId,
+                statut: 'ACTIVE'
+            };
+
+            const selectedDays = [...document.querySelectorAll('input[name="jours"]:checked')].map(x => x.value);
+            if (selectedDays.length > 0) data.joursSemaine = selectedDays;
+
+            try {
+                if (editingId) {
+                    await Api.contraintes.update(editingId, data);
+                    Utils.toast('Contrainte modifiée', 'success');
+                } else {
+                    await Api.contraintes.create(data);
+                    Utils.toast('Contrainte créée', 'success');
+                }
+                Utils.closeModal('constraintModal');
+                resetForm();
+                loadConstraints();
+            } catch (error) {
+                Utils.toast(error.message || 'Erreur', 'danger');
+            }
+        });
+
+        loadConstraints();
+    </script>
+</body>
+
+</html>

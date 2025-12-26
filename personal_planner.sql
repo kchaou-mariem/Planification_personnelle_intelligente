@@ -122,7 +122,7 @@ CREATE TABLE `utilisateur` (
   `age` int(11) DEFAULT NULL,
   `genre` varchar(20) DEFAULT NULL,
   `poste` varchar(100) DEFAULT NULL,
-  `motdepassehash` varchar(255) DEFAULT NULL,
+  `mot_de_passe_hash` varchar(100) DEFAULT NULL,
   `salt` varchar(255) DEFAULT NULL,
   `date_creation` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -234,7 +234,36 @@ ALTER TABLE `statistique`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
-ALTER TABLE `utilisateur`
-ADD COLUMN `motdepassehash` varchar(255) DEFAULT NULL AFTER `poste`,
-ADD COLUMN `salt` varchar(255) DEFAULT NULL AFTER `motdepassehash`;
+-- Note: Les colonnes mot_de_passe_hash et salt sont définies dans CREATE TABLE utilisateur
+-- --------------------------------------------------------
+
+--
+-- Table de liaison entre conflits et activités
+--
+
+CREATE TABLE IF NOT EXISTS `conflit_activite` (
+  `id_conflit` int(11) NOT NULL,
+  `id_activite` int(11) NOT NULL,
+  PRIMARY KEY (`id_conflit`, `id_activite`),
+  FOREIGN KEY (`id_conflit`) REFERENCES `conflit` (`id_conflit`) ON DELETE CASCADE,
+  FOREIGN KEY (`id_activite`) REFERENCES `activite` (`id_activite`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table d'archivage des anciens conflits
+--
+
+CREATE TABLE IF NOT EXISTS `conflit_archive` (
+  `id_conflit` int(11) NOT NULL,
+  `horaire_detection` datetime NOT NULL,
+  `type_conflit` enum('Chevauchement des activités','Violation de contrainte','Fatigue Excessive','Deadline','Équilibre Faible','Repos Insuffisant') NOT NULL,
+  `resolu` tinyint(1) DEFAULT 0,
+  `id_statistique` int(11) DEFAULT NULL,
+  `date_creation` timestamp NOT NULL DEFAULT current_timestamp(),
+  `date_archivage` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_conflit`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 COMMIT;

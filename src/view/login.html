@@ -2,29 +2,302 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Planification Personnelle Intelligente - Connexion">
     <title>Connexion - Planification Personnelle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+        }
+        
+        .auth-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            background: var(--primary-gradient);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+        
+        .auth-left::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            bottom: -50px;
+            left: -50px;
+        }
+        
+        .auth-branding {
+            text-align: center;
+            z-index: 1;
+            max-width: 400px;
+        }
+        
+        .auth-branding h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: var(--space-md);
+        }
+        
+        .auth-branding p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+        
+        .auth-features {
+            margin-top: var(--space-2xl);
+            text-align: left;
+        }
+        
+        .auth-feature {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            color: rgba(255,255,255,0.95);
+        }
+        
+        .auth-feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .auth-right {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+        }
+        
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .auth-header h2 {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .auth-header p {
+            color: var(--text-muted);
+        }
+        
+        .auth-form .form-group {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .auth-form .btn {
+            width: 100%;
+            padding: var(--space-md);
+            font-size: 1rem;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: var(--space-xl);
+            color: var(--text-muted);
+        }
+        
+        .auth-footer a {
+            font-weight: 500;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        @media (max-width: 900px) {
+            .auth-left {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Connexion</h1>
-    <nav>
-        <a href="index.html">Accueil</a> |
-        <a href="register.html">Inscription</a>
-    </nav>
-    <div class="form-card">
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" name="email" required>
+    <!-- Theme Toggle -->
+    <button class="btn btn-secondary btn-icon theme-toggle" onclick="Utils.toggleTheme()" title="Changer le thème">
+        🌓
+    </button>
+
+    <div class="auth-page">
+        <!-- Left Panel - Branding -->
+        <div class="auth-left">
+            <div class="auth-branding">
+                <div style="font-size: 4rem; margin-bottom: var(--space-md);">📅</div>
+                <h1>Planification Personnelle</h1>
+                <p>Organisez votre vie, atteignez vos objectifs avec notre outil de planification intelligent.</p>
+                
+                <div class="auth-features">
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">📊</div>
+                        <div>Gestion intelligente des activités</div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">⏰</div>
+                        <div>Détection automatique des conflits</div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">🎯</div>
+                        <div>Suivi de vos objectifs</div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="login-password">Mot de passe</label>
-                <input type="password" id="login-password" name="motdepasse" required>
+        </div>
+        
+        <!-- Right Panel - Login Form -->
+        <div class="auth-right">
+            <div class="auth-card animate-slideUp">
+                <div class="auth-header">
+                    <h2>Connexion</h2>
+                    <p>Bienvenue ! Connectez-vous à votre compte</p>
+                </div>
+                
+                <form id="loginForm" class="auth-form">
+                    <div id="form-alert" class="alert hidden"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Adresse email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="form-input" 
+                            placeholder="votre@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="motdepasse">Mot de passe</label>
+                        <input 
+                            type="password" 
+                            id="motdepasse" 
+                            name="motdepasse" 
+                            class="form-input" 
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span id="btnText">Se connecter</span>
+                        <span id="btnLoader" class="hidden">Connexion...</span>
+                    </button>
+                </form>
+                
+                <div class="auth-footer">
+                    Pas encore de compte ? 
+                    <a href="register.html">S'inscrire</a>
+                </div>
             </div>
-            <button type="submit">Se connecter</button>
-        </form>
-        <div id="form-message"></div>
+        </div>
     </div>
-    <script src="js/login.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        Auth.redirectIfAuthenticated();
+        
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const motdepasse = document.getElementById('motdepasse').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            const formAlert = document.getElementById('form-alert');
+            
+            // Validation
+            Utils.clearFormErrors(e.target);
+            formAlert.classList.add('hidden');
+            
+            if (!Utils.isValidEmail(email)) {
+                Utils.showFormError(document.getElementById('email'), 'Email invalide');
+                return;
+            }
+            
+            if (motdepasse.length < 4) {
+                Utils.showFormError(document.getElementById('motdepasse'), 'Mot de passe requis');
+                return;
+            }
+            
+            // Submit
+            submitBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            
+            try {
+                const result = await Auth.login(email, motdepasse);
+                
+                if (result.success) {
+                    Utils.toast('Connexion réussie !', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } else {
+                    formAlert.className = 'alert alert-danger';
+                    formAlert.textContent = result.message || 'Email ou mot de passe incorrect';
+                    formAlert.classList.remove('hidden');
+                }
+            } catch (error) {
+                formAlert.className = 'alert alert-danger';
+                formAlert.textContent = 'Erreur de connexion au serveur';
+                formAlert.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>

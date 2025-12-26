@@ -20,12 +20,12 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public Long ajouter(Activite activite) {
         String sql = "INSERT INTO activite (titre, type_activite, description, priorite, deadline, " +
-                    "horaire_debut, horaire_fin, id_utilisateur) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
+                "horaire_debut, horaire_fin, id_utilisateur) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, activite.getTitre());
             stmt.setString(2, convertirTypeActiviteJava(activite.getTypeActivite()));
             stmt.setString(3, activite.getDescription());
@@ -35,12 +35,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
                 stmt.setNull(4, Types.INTEGER);
             }
             stmt.setTimestamp(5, activite.getDeadline() != null ? Timestamp.valueOf(activite.getDeadline()) : null);
-            stmt.setTimestamp(6, activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
+            stmt.setTimestamp(6,
+                    activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
             stmt.setTimestamp(7, activite.getHoraireFin() != null ? Timestamp.valueOf(activite.getHoraireFin()) : null);
             stmt.setLong(8, activite.getIdUtilisateur());
-            
+
             int affectedRows = stmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -58,12 +59,12 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public boolean modifier(Activite activite) {
         String sql = "UPDATE activite SET titre = ?, type_activite = ?, description = ?, priorite = ?, " +
-                    "deadline = ?, horaire_debut = ?, horaire_fin = ? " +
-                    "WHERE id_activite = ?";
-        
+                "deadline = ?, horaire_debut = ?, horaire_fin = ? " +
+                "WHERE id_activite = ?";
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, activite.getTitre());
             stmt.setString(2, convertirTypeActiviteJava(activite.getTypeActivite()));
             stmt.setString(3, activite.getDescription());
@@ -73,10 +74,11 @@ public class ActiviteDAOImpl implements ActiviteDAO {
                 stmt.setNull(4, Types.INTEGER);
             }
             stmt.setTimestamp(5, activite.getDeadline() != null ? Timestamp.valueOf(activite.getDeadline()) : null);
-            stmt.setTimestamp(6, activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
+            stmt.setTimestamp(6,
+                    activite.getHoraireDebut() != null ? Timestamp.valueOf(activite.getHoraireDebut()) : null);
             stmt.setTimestamp(7, activite.getHoraireFin() != null ? Timestamp.valueOf(activite.getHoraireFin()) : null);
             stmt.setLong(8, activite.getIdActivite());
-            
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Erreur lors de la modification de l'activité: " + e.getMessage());
@@ -88,10 +90,10 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public boolean supprimer(Long idActivite) {
         String sql = "DELETE FROM activite WHERE id_activite = ?";
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idActivite);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -104,13 +106,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public Optional<Activite> getById(Long idActivite) {
         String sql = "SELECT * FROM activite WHERE id_activite = ?";
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idActivite);
             ResultSet rs = stmt.executeQuery();
-            
+
             if (rs.next()) {
                 return Optional.of(mapResultSetToActivite(rs));
             }
@@ -125,11 +127,11 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getAll() {
         String sql = "SELECT * FROM activite ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -146,13 +148,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getByUtilisateur(Long idUtilisateur) {
         String sql = "SELECT * FROM activite WHERE id_utilisateur = ? ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idUtilisateur);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -167,13 +169,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getByType(TypeActivite type) {
         String sql = "SELECT * FROM activite WHERE type_activite = ? ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, convertirTypeActiviteJava(type));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -187,16 +189,16 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public List<Activite> getByTypeAndUtilisateur(Long idUtilisateur, TypeActivite type) {
         String sql = "SELECT * FROM activite WHERE id_utilisateur = ? AND type_activite = ? " +
-                    "ORDER BY horaire_debut DESC";
+                "ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idUtilisateur);
             stmt.setString(2, convertirTypeActiviteJava(type));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -211,14 +213,14 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getByPeriode(LocalDateTime dateDebut, LocalDateTime dateFin) {
         String sql = "SELECT * FROM activite WHERE horaire_debut BETWEEN ? AND ? ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setTimestamp(1, Timestamp.valueOf(dateDebut));
             stmt.setTimestamp(2, Timestamp.valueOf(dateFin));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -230,19 +232,20 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     }
 
     @Override
-    public List<Activite> getByUtilisateurAndPeriode(Long idUtilisateur, LocalDateTime dateDebut, LocalDateTime dateFin) {
+    public List<Activite> getByUtilisateurAndPeriode(Long idUtilisateur, LocalDateTime dateDebut,
+            LocalDateTime dateFin) {
         String sql = "SELECT * FROM activite WHERE id_utilisateur = ? AND horaire_debut BETWEEN ? AND ? " +
-                    "ORDER BY horaire_debut DESC";
+                "ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idUtilisateur);
             stmt.setTimestamp(2, Timestamp.valueOf(dateDebut));
             stmt.setTimestamp(3, Timestamp.valueOf(dateFin));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -256,15 +259,15 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public List<Activite> getActivitesAvecDeadlineProche(int joursAvance) {
         String sql = "SELECT * FROM activite WHERE deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ? DAY) " +
-                    "ORDER BY deadline ASC";
+                "ORDER BY deadline ASC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, joursAvance);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -279,13 +282,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getByPriorite(int priorite) {
         String sql = "SELECT * FROM activite WHERE priorite = ? ORDER BY deadline ASC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, priorite);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -300,15 +303,15 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> rechercherParMotCle(String motCle) {
         String sql = "SELECT * FROM activite WHERE titre LIKE ? OR description LIKE ? ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             String pattern = "%" + motCle + "%";
             stmt.setString(1, pattern);
             stmt.setString(2, pattern);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -322,18 +325,18 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public List<Activite> rechercherParMotCleUtilisateur(Long idUtilisateur, String motCle) {
         String sql = "SELECT * FROM activite WHERE id_utilisateur = ? AND (titre LIKE ? OR description LIKE ?) " +
-                    "ORDER BY horaire_debut DESC";
+                "ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             String pattern = "%" + motCle + "%";
             stmt.setLong(1, idUtilisateur);
             stmt.setString(2, pattern);
             stmt.setString(3, pattern);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -349,16 +352,16 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public boolean hasChevauchement(Long idActivite, LocalDateTime horaireDebut, LocalDateTime horaireFin) {
         String sql = "SELECT COUNT(*) FROM activite WHERE id_activite != ? AND " +
-                    "horaire_debut < ? AND horaire_fin > ?";
-        
+                "horaire_debut < ? AND horaire_fin > ?";
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idActivite);
             stmt.setTimestamp(2, Timestamp.valueOf(horaireFin));
             stmt.setTimestamp(3, Timestamp.valueOf(horaireDebut));
             ResultSet rs = stmt.executeQuery();
-            
+
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
@@ -372,16 +375,16 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public List<Activite> getActivitesChevauchantes(LocalDateTime horaireDebut, LocalDateTime horaireFin) {
         String sql = "SELECT * FROM activite WHERE horaire_debut < ? AND horaire_fin > ? " +
-                    "ORDER BY horaire_debut DESC";
+                "ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setTimestamp(1, Timestamp.valueOf(horaireFin));
             stmt.setTimestamp(2, Timestamp.valueOf(horaireDebut));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -393,19 +396,20 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     }
 
     @Override
-    public List<Activite> getActivitesChevauchantesUtilisateur(Long idUtilisateur, LocalDateTime horaireDebut, LocalDateTime horaireFin) {
+    public List<Activite> getActivitesChevauchantesUtilisateur(Long idUtilisateur, LocalDateTime horaireDebut,
+            LocalDateTime horaireFin) {
         String sql = "SELECT * FROM activite WHERE id_utilisateur = ? AND horaire_debut < ? AND horaire_fin > ? " +
-                    "ORDER BY horaire_debut DESC";
+                "ORDER BY horaire_debut DESC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idUtilisateur);
             stmt.setTimestamp(2, Timestamp.valueOf(horaireFin));
             stmt.setTimestamp(3, Timestamp.valueOf(horaireDebut));
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -421,11 +425,11 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public int compterToutesLesActivites() {
         String sql = "SELECT COUNT(*) FROM activite";
-        
+
         try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -439,13 +443,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public int compterActivitesUtilisateur(Long idUtilisateur) {
         String sql = "SELECT COUNT(*) FROM activite WHERE id_utilisateur = ?";
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idUtilisateur);
             ResultSet rs = stmt.executeQuery();
-            
+
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -459,13 +463,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     @Override
     public int compterParType(TypeActivite type) {
         String sql = "SELECT COUNT(*) FROM activite WHERE type_activite = ?";
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, convertirTypeActiviteJava(type));
             ResultSet rs = stmt.executeQuery();
-            
+
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -480,13 +484,13 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getActivitesRecentes(int limite) {
         String sql = "SELECT * FROM activite ORDER BY horaire_debut DESC LIMIT ?";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, limite);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -501,11 +505,11 @@ public class ActiviteDAOImpl implements ActiviteDAO {
     public List<Activite> getActivitesHautePriorite() {
         String sql = "SELECT * FROM activite WHERE priorite >= 8 ORDER BY priorite DESC, deadline ASC";
         List<Activite> activites = new ArrayList<>();
-        
+
         try (Connection conn = Connect.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 activites.add(mapResultSetToActivite(rs));
             }
@@ -536,14 +540,14 @@ public class ActiviteDAOImpl implements ActiviteDAO {
         Long idUtilisateur = rs.getLong("id_utilisateur");
         Timestamp dateCreationTs = rs.getTimestamp("date_creation");
         LocalDateTime dateCreation = dateCreationTs != null ? dateCreationTs.toLocalDateTime() : null;
-        
+
         // Convertir le type d'activité
         TypeActivite type = convertirTypeActiviteBD(typeActivite);
-        
-        return new Activite(id, titre, type, description, priorite, deadline, 
-                           horaireDebut, horaireFin, idUtilisateur, dateCreation);
+
+        return new Activite(id, titre, type, description, priorite, deadline,
+                horaireDebut, horaireFin, idUtilisateur, dateCreation);
     }
-    
+
     /**
      * Convertit les valeurs d'enum de la BD vers les constantes Java
      */
@@ -564,7 +568,7 @@ public class ActiviteDAOImpl implements ActiviteDAO {
                 throw new IllegalArgumentException("Type d'activité inconnu: " + typeBD);
         }
     }
-    
+
     /**
      * Convertit les constantes Java vers les valeurs d'enum de la BD
      */

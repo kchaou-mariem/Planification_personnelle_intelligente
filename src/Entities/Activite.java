@@ -238,8 +238,7 @@ public class Activite {
 
 		// ✅ 4. Application de TOUTES les modifications
 		activiteAModifier.setTitre(nouveauTitre);
-		activiteAModifier.setType(nouveauType);
-		activiteAModifier.setDuree(nouvelleDuree);
+		
 		activiteAModifier.setPriorite(nouvellePriorite);
 		activiteAModifier.setDeadline(nouveauDeadline);
 		activiteAModifier.setHoraireDebut(nouveauHoraireDebut);

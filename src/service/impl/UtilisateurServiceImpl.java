@@ -81,7 +81,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateur.setPrenom(nouveauPrenom);
         return utilisateurDAO.modifier(utilisateur);
     }
-    
+    @Override
+    public Utilisateur getUtilisateurByEmail(String email) {
+        return utilisateurDAO.getByEmail(email);
+    }
     @Override
     public boolean modifierEmail(int userId, String nouvelEmail) {
         if (nouvelEmail == null || nouvelEmail.isEmpty()) {

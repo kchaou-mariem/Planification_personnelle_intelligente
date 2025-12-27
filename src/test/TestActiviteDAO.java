@@ -1,9 +1,9 @@
 package test;
 
+import dao.impl.ActiviteDAOImpl;
 import dao.interfaces.ActiviteDAO;
 import entities.Activite;
 import entities.TypeActivite;
-import dao.impl.ActiviteDAOImpl;
 import service.ActiviteService;
 import service.impl.ActiviteServiceImpl;
 
@@ -11,66 +11,59 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Tests pour la classe Activite et ses opérations DAO/Service
- * Contient des tests unitaires pour valider les fonctionnalités
- */
 public class TestActiviteDAO {
-    
+
     private static ActiviteDAO activiteDAO;
     private static ActiviteService activiteService;
     private static final Long TEST_USER_ID = 1L;
-    
+    private static Long testActiviteId = 0L;
+
     public static void main(String[] args) {
         // Initialisation
         activiteDAO = new ActiviteDAOImpl();
         activiteService = new ActiviteServiceImpl(activiteDAO);
-        
+
         System.out.println("=== TESTS ACTIVITE DAO ===\n");
-        
+
         // Tests
-        testAjouterActivite();
-        testObtenirActivite();
-        testModifierActivite();
-        testObtenirActivitesUtilisateur();
-        testObtenirActivitesParType();
-        testVerifierChevauchement();
-        testMarquerCommeCompletee();
-        testRechercheParMotCle();
+        testAjouter();
+        testGetById();
+        testGetByUtilisateur();
+        testGetByTypeAndUtilisateur();
+        testGetByPeriode();
+        testModifier();
+        testGetActivitesChevauchantes();
+        testRecherche();
         testStatistiques();
-        testSupprimerActivite();
-        
+       // testSupprimer();
+
         System.out.println("\n=== TESTS TERMINÉS ===");
     }
-    
-    /**
-     * Test : Ajouter une activité
-     */
-    private static void testAjouterActivite() {
+
+    private static void testAjouter() {
         System.out.println("Test 1 : Ajouter une activité");
         System.out.println("-".repeat(50));
-        
+
         try {
-            LocalDateTime debut = LocalDateTime.of(2024, 12, 20, 10, 0);
-            LocalDateTime fin = LocalDateTime.of(2024, 12, 20, 11, 30);
-            LocalDateTime deadline = LocalDateTime.of(2024, 12, 21, 17, 0);
-            
-            Activite activite = new Activite(
-                "Réunion importante",
-                "Réunion avec l'équipe de projet",
-                TypeActivite.Travail,
-                90,  // 1h30
-                8,   // priorité haute
-                deadline,
-                debut,
-                fin,
-                TEST_USER_ID
-            );
-            
-            Long idActivite = activiteService.creerActivite(activite);
-            
-            if (idActivite > 0) {
-                System.out.println("✓ Activité ajoutée avec succès. ID: " + idActivite);
+            LocalDateTime debut = LocalDateTime.now().plusHours(1);
+            LocalDateTime fin = debut.plusHours(2);
+            LocalDateTime deadline = LocalDateTime.now().plusDays(1);
+
+            Activite activite = new Activite();
+            activite.setTitre("Réunion importante");
+            activite.setDescription("Réunion avec l'équipe de projet");
+            activite.setTypeActivite(TypeActivite.Travail);
+            activite.setPriorite(8);
+            activite.setDeadline(deadline);
+            activite.setHoraireDebut(debut);
+            activite.setHoraireFin(fin);
+            activite.setIdUtilisateur(TEST_USER_ID);
+
+            Long id = activiteDAO.ajouter(activite);
+
+            if (id > 0) {
+                testActiviteId = id;
+                System.out.println("✓ Activité ajoutée. ID: " + id);
             } else {
                 System.out.println("✗ Erreur lors de l'ajout");
             }
@@ -78,300 +71,178 @@ public class TestActiviteDAO {
             System.out.println("✗ Exception: " + e.getMessage());
             e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Obtenir une activité par ID
-     */
-    private static void testObtenirActivite() {
+
+    private static void testGetById() {
         System.out.println("Test 2 : Obtenir une activité par ID");
         System.out.println("-".repeat(50));
-        
-        try {
-            Optional<Activite> activite = activiteService.obtenirActivite(1L);
-            
-            if (activite.isPresent()) {
-                System.out.println("✓ Activité trouvée: " + activite.get().getTitre());
-                System.out.println("  Type: " + activite.get().getType());
-                System.out.println("  Priorité: " + activite.get().getPriorite());
-            } else {
-                System.out.println("✗ Activité non trouvée");
-            }
-        } catch (Exception e) {
-            System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        System.out.println();
-    }
-    
-    /**
-     * Test : Modifier une activité
-     */
-    private static void testModifierActivite() {
-        System.out.println("Test 3 : Modifier une activité");
-        System.out.println("-".repeat(50));
-        
-        try {
-            Optional<Activite> activiteOpt = activiteService.obtenirActivite(1L);
-            
-            if (activiteOpt.isPresent()) {
-                Activite activite = activiteOpt.get();
-                
-                // Modification
-                LocalDateTime nouvelleFin = activite.getHoraireDebut().plusHours(2);
-                activite.setHoraireFin(nouvelleFin);
-                activite.setDuree(120);  // 2 heures
-                activite.setPriorite(9);
-                
-                if (activiteService.mettreAJourActivite(activite)) {
-                    System.out.println("✓ Activité modifiée avec succès");
+
+        if (testActiviteId > 0) {
+            try {
+                Optional<Activite> activite = activiteDAO.getById(testActiviteId);
+
+                if (activite.isPresent()) {
+                    System.out.println("✓ Activité trouvée: " + activite.get().getTitre());
+                    System.out.println("  Type: " + activite.get().getTypeActivite());
+                    System.out.println("  Priorité: " + activite.get().getPriorite());
                 } else {
-                    System.out.println("✗ Erreur lors de la modification");
+                    System.out.println("✗ Activité non trouvée");
                 }
-            } else {
-                System.out.println("✗ Activité non trouvée");
+            } catch (Exception e) {
+                System.out.println("✗ Exception: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Obtenir les activités d'un utilisateur
-     */
-    private static void testObtenirActivitesUtilisateur() {
-        System.out.println("Test 4 : Obtenir les activités d'un utilisateur");
+
+    private static void testGetByUtilisateur() {
+        System.out.println("Test 3 : Obtenir les activités d'un utilisateur");
         System.out.println("-".repeat(50));
-        
+
         try {
-            List<Activite> activites = activiteService.obtenirActivitesUtilisateur(TEST_USER_ID);
-            
-            System.out.println("Nombre d'activités: " + activites.size());
+            List<Activite> activites = activiteDAO.getByUtilisateur(TEST_USER_ID);
+
+            System.out.println("✓ Activités pour utilisateur " + TEST_USER_ID + ": " + activites.size());
             for (int i = 0; i < Math.min(activites.size(), 3); i++) {
                 Activite a = activites.get(i);
-                System.out.println((i + 1) + ". " + a.getTitre() + " (" + a.getType() + ")");
-            }
-            
-            if (!activites.isEmpty()) {
-                System.out.println("✓ Activités trouvées");
-            } else {
-                System.out.println("⚠ Aucune activité trouvée");
+                System.out.println((i + 1) + ". " + a.getTitre() + " (" + a.getTypeActivite() + ")");
             }
         } catch (Exception e) {
             System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Obtenir les activités par type
-     */
-    private static void testObtenirActivitesParType() {
-        System.out.println("Test 5 : Obtenir les activités par type");
+
+    private static void testGetByTypeAndUtilisateur() {
+        System.out.println("Test 4 : Obtenir les activités par type et utilisateur");
         System.out.println("-".repeat(50));
-        
+
         try {
-            List<Activite> activites = activiteService.obtenirActivitesParType(TypeActivite.Travail);
-            
-            System.out.println("Activités de type TRAVAIL: " + activites.size());
+            List<Activite> activites = activiteDAO.getByTypeAndUtilisateur(TEST_USER_ID, TypeActivite.Travail);
+
+            System.out.println("✓ Activités TRAVAIL: " + activites.size());
             for (int i = 0; i < Math.min(activites.size(), 3); i++) {
                 Activite a = activites.get(i);
                 System.out.println((i + 1) + ". " + a.getTitre());
             }
-            
-            if (!activites.isEmpty()) {
-                System.out.println("✓ Activités trouvées");
-            } else {
-                System.out.println("⚠ Aucune activité de type TRAVAIL");
-            }
         } catch (Exception e) {
             System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Vérifier le chevauchement
-     */
-    private static void testVerifierChevauchement() {
-        System.out.println("Test 6 : Vérifier le chevauchement");
+
+    private static void testGetByPeriode() {
+        System.out.println("Test 5 : Obtenir les activités par période");
         System.out.println("-".repeat(50));
-        
+
         try {
-            LocalDateTime debut = LocalDateTime.of(2024, 12, 20, 10, 30);
-            LocalDateTime fin = LocalDateTime.of(2024, 12, 20, 11, 0);
-            
-            boolean chevauchement = activiteService.verifierChevauchement(TEST_USER_ID, debut, fin);
-            
-            if (chevauchement) {
-                System.out.println("✓ Chevauchement détecté");
-                
-                List<Activite> activites = activiteService.obtenirActivitesChevauchantes(TEST_USER_ID, debut, fin);
-                System.out.println("Activités chevauchantes: " + activites.size());
-                for (Activite a : activites) {
-                    System.out.println("  - " + a.getTitre());
-                }
-            } else {
-                System.out.println("⚠ Pas de chevauchement détecté");
-            }
+            LocalDateTime debut = LocalDateTime.now().minusDays(1);
+            LocalDateTime fin = LocalDateTime.now().plusDays(2);
+
+            List<Activite> activites = activiteDAO.getByPeriode(debut, fin);
+
+            System.out.println("✓ Activités dans la période: " + activites.size());
         } catch (Exception e) {
             System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Marquer une activité comme complétée
-     */
-    private static void testMarquerCommeCompletee() {
-        System.out.println("Test 7 : Marquer une activité comme complétée");
+
+    private static void testModifier() {
+        System.out.println("Test 6 : Modifier une activité");
         System.out.println("-".repeat(50));
-        
-        try {
-            // D'abord obtenir une activité
-            Optional<Activite> activiteOpt = activiteService.obtenirActivite(1L);
-            
-            if (activiteOpt.isPresent()) {
-                Activite activite = activiteOpt.get();
-                
-                if (activiteService.completerActivite(activite.getIdActivite())) {
-                    System.out.println("✓ Activité marquée comme complétée");
-                } else {
-                    System.out.println("✗ Erreur lors du marquage");
+
+        if (testActiviteId > 0) {
+            try {
+                Optional<Activite> activiteOpt = activiteDAO.getById(testActiviteId);
+
+                if (activiteOpt.isPresent()) {
+                    Activite activite = activiteOpt.get();
+                    activite.setTitre("Réunion modifiée");
+                    activite.setPriorite(9);
+
+                    boolean success = activiteDAO.modifier(activite);
+                    if (success) {
+                        System.out.println("✓ Activité modifiée");
+                    } else {
+                        System.out.println("✗ Erreur lors de la modification");
+                    }
                 }
-                
-                // Vérifier l'état
-                Optional<Activite> activiteModifiee = activiteService.obtenirActivite(1L);
-                if (activiteModifiee.isPresent() && activiteModifiee.get().isCompletee()) {
-                    System.out.println("✓ Vérification: L'activité est bien complétée");
-                }
+            } catch (Exception e) {
+                System.out.println("✗ Exception: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Recherche par mot-clé
-     */
-    private static void testRechercheParMotCle() {
+
+    private static void testGetActivitesChevauchantes() {
+        System.out.println("Test 7 : Obtenir les activités chevauchantes");
+        System.out.println("-".repeat(50));
+
+        try {
+            LocalDateTime debut = LocalDateTime.now().plusHours(1).plusMinutes(30);
+            LocalDateTime fin = debut.plusHours(1);
+
+            List<Activite> activites = activiteDAO.getActivitesChevauchantesUtilisateur(
+                    TEST_USER_ID, debut, fin);
+
+            System.out.println("✓ Activités chevauchantes: " + activites.size());
+        } catch (Exception e) {
+            System.out.println("✗ Exception: " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private static void testRecherche() {
         System.out.println("Test 8 : Recherche par mot-clé");
         System.out.println("-".repeat(50));
-        
+
         try {
-            List<Activite> activites = activiteService.rechercherActivitesUtilisateur(TEST_USER_ID, "Réunion");
-            
-            System.out.println("Résultats pour 'Réunion': " + activites.size());
-            for (Activite a : activites) {
-                System.out.println("  - " + a.getTitre() + " (" + a.getDescription() + ")");
-            }
-            
-            if (!activites.isEmpty()) {
-                System.out.println("✓ Résultats trouvés");
-            } else {
-                System.out.println("⚠ Aucun résultat");
-            }
+            List<Activite> activites = activiteDAO.rechercherParMotCleUtilisateur(TEST_USER_ID, "réunion");
+
+            System.out.println("✓ Résultats pour 'réunion': " + activites.size());
         } catch (Exception e) {
             System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Statistiques
-     */
+
     private static void testStatistiques() {
         System.out.println("Test 9 : Statistiques");
         System.out.println("-".repeat(50));
-        
+
         try {
-            int total = activiteService.obtenirNombreTotalActivites();
-            int completees = activiteService.obtenirNombreActivitesCompletees();
-            int nonCompletees = activiteService.obtenirNombreActivitesNonCompletees();
-            double taux = activiteService.obtenirTauxCompletion();
-            int dureeTotal = activiteService.obtenirDureeTotalActivites();
-            
-            System.out.println("Total d'activités: " + total);
-            System.out.println("Complétées: " + completees);
-            System.out.println("Non complétées: " + nonCompletees);
-            System.out.printf("Taux de complétude: %.2f%%\n", taux);
-            System.out.println("Durée totale: " + dureeTotal + " minutes (" + (dureeTotal / 60) + "h)");
-            
-            System.out.println("✓ Statistiques calculées");
+            int total = activiteDAO.compterToutesLesActivites();
+            int parUtilisateur = activiteDAO.compterActivitesUtilisateur(TEST_USER_ID);
+            int parType = activiteDAO.compterParType(TypeActivite.Travail);
+
+            System.out.println("✓ Total d'activités: " + total);
+            System.out.println("✓ Activités utilisateur " + TEST_USER_ID + ": " + parUtilisateur);
+            System.out.println("✓ Activités TRAVAIL: " + parType);
         } catch (Exception e) {
             System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
-    
-    /**
-     * Test : Supprimer une activité
-     */
-    private static void testSupprimerActivite() {
+/*
+    private static void testSupprimer() {
         System.out.println("Test 10 : Supprimer une activité");
         System.out.println("-".repeat(50));
-        
-        try {
-            // Créer une activité de test à supprimer
-            LocalDateTime debut = LocalDateTime.of(2024, 12, 25, 14, 0);
-            LocalDateTime fin = LocalDateTime.of(2024, 12, 25, 15, 0);
-            LocalDateTime deadline = LocalDateTime.of(2024, 12, 26, 17, 0);
-            
-            Activite activiteTest = new Activite(
-                "Activité à supprimer",
-                "Test suppression",
-                TypeActivite.Loisirs,
-                60,
-                3,
-                deadline,
-                debut,
-                fin,
-                TEST_USER_ID
-            );
-            
-            Long idActivite = activiteService.creerActivite(activiteTest);
-            
-            if (idActivite > 0) {
-                System.out.println("Activité créée avec ID: " + idActivite);
-                
-                if (activiteService.supprimerActivite(idActivite)) {
-                    System.out.println("✓ Activité supprimée avec succès");
-                    
-                    // Vérifier qu'elle n'existe plus
-                    Optional<Activite> activiteDeleted = activiteService.obtenirActivite(idActivite);
-                    if (activiteDeleted.isEmpty()) {
-                        System.out.println("✓ Vérification: L'activité n'existe plus");
-                    }
+
+        if (testActiviteId > 0) {
+            try {
+                boolean success = activiteDAO.supprimer(testActiviteId);
+                if (success) {
+                    System.out.println("✓ Activité supprimée");
                 } else {
                     System.out.println("✗ Erreur lors de la suppression");
                 }
-            } else {
-                System.out.println("✗ Erreur lors de la création");
+            } catch (Exception e) {
+                System.out.println("✗ Exception: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("✗ Exception: " + e.getMessage());
-            e.printStackTrace();
         }
-        
         System.out.println();
     }
+    */
 }

@@ -19,7 +19,7 @@ public interface ConflitDAO {
      * @param conflit Le conflit à ajouter
      * @return L'ID du conflit créé, ou -1 en cas d'échec
      */
-    Long ajouter(Conflit conflit);
+    long ajouter(Conflit conflit);
     
     /**
      * Modifier un conflit existant

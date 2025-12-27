@@ -2,115 +2,54 @@ package service;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 import entities.Contrainte;
 import entities.StatutContrainte;
 import entities.TypeContrainte;
 
-/**
- * Interface Service pour la gestion des contraintes. Elle définit les
- * opérations métier liées aux contraintes.
- */
 public interface ContrainteService {
 
-	/**
-	 * Ajoute une nouvelle contrainte
-	 */
-	int ajouterContrainte(Contrainte contrainte);
+	// Méthodes appelées par le Controller
+	Contrainte getById(int id);
 
-	/**
-	 * Modifie une contrainte existante
-	 */
-	boolean modifierContrainte(Contrainte contrainte);
+	List<Contrainte> getAll();
 
-	/**
-	 * Supprime une contrainte
-	 */
-	boolean supprimerContrainte(int idContrainte);
+	List<Contrainte> getByUtilisateur(int utilisateurId);
 
-	/**
-	 * Récupère une contrainte par son ID
-	 */
-	Optional<Contrainte> getContrainteById(int idContrainte);
+	List<Contrainte> getContraintesActives(int utilisateurId);
 
-	/**
-	 * Récupère toutes les contraintes
-	 */
-	List<Contrainte> getToutesLesContraintes();
+	boolean ajouter(Contrainte contrainte);
 
-	/**
-	 * Récupère les contraintes actives
-	 */
-	List<Contrainte> getContraintesActives();
+	boolean modifier(Contrainte contrainte);
 
-	/**
-	 * Récupère les contraintes désactivées
-	 */
-	List<Contrainte> getContraintesDesactives();
+	boolean supprimer(int id);
 
-	/**
-	 * Récupère les contraintes par statut
-	 */
-	List<Contrainte> getContraintesByStatut(StatutContrainte statut);
+	boolean toggleStatut(int id);
 
-	/**
-	 * Récupère les contraintes par période horaire
-	 */
-	List<Contrainte> getContraintesByPeriode(LocalTime heureDebut, LocalTime heureFin);
+	// Méthodes supplémentaires (garder les existantes avec userId)
+	List<Contrainte> getContraintesDesactives(int utilisateurId);
 
-	/**
-	 * Récupère les contraintes répétitives
-	 */
-	List<Contrainte> getContraintesRepetitives();
+	List<Contrainte> getContraintesByStatut(int utilisateurId, StatutContrainte statut);
 
-	/**
-	 * Récupère les contraintes non répétitives
-	 */
-	List<Contrainte> getContraintesNonRepetitives();
+	List<Contrainte> getContraintesByPeriode(int utilisateurId, LocalTime heureDebut, LocalTime heureFin);
 
-	/**
-	 * Récupère les contraintes par type
-	 */
-	List<Contrainte> getContraintesByType(TypeContrainte type);
+	List<Contrainte> getContraintesRepetitives(int utilisateurId);
 
-	/**
-	 * Active une contrainte
-	 */
-	boolean activerContrainte(int idContrainte);
+	List<Contrainte> getContraintesNonRepetitives(int utilisateurId);
 
-	/**
-	 * Désactive une contrainte
-	 */
-	boolean desactiverContrainte(int idContrainte);
+	List<Contrainte> getContraintesByType(int utilisateurId, TypeContrainte type);
 
-	/**
-	 * Change le statut d'une contrainte
-	 */
-	boolean changerStatutContrainte(int idContrainte, StatutContrainte newStatut);
+	boolean activerContrainte(int idContrainte, int utilisateurId);
 
-	/**
-	 * Compte le nombre total de contraintes
-	 */
-	int compterToutesLesContraintes();
+	boolean desactiverContrainte(int idContrainte, int utilisateurId);
 
-	/**
-	 * Compte les contraintes par statut
-	 */
-	int compterContraintesByStatut(StatutContrainte statut);
+	boolean changerStatutContrainte(int idContrainte, int utilisateurId, StatutContrainte newStatut);
 
-	/**
-	 * Compte les contraintes actives
-	 */
-	int compterContraintesActives();
+	int compterContraintesByStatut(int utilisateurId, StatutContrainte statut);
 
-	/**
-	 * Compte les contraintes désactivées
-	 */
-	int compterContraintesDesactives();
+	int compterContraintesActives(int utilisateurId);
 
-	/**
-	 * Vérifie si une contrainte est en conflit avec une plage horaire
-	 */
+	int compterContraintesDesactives(int utilisateurId);
+
 	boolean estEnConflit(Contrainte contrainte, LocalTime heureDebut, LocalTime heureFin);
 }

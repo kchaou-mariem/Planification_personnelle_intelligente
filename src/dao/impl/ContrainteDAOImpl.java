@@ -17,17 +17,78 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ContrainteDAOImpl implements ContrainteDAO {
+    @Override
+    public Optional<Contrainte> getByIdAndUtilisateur(int idContrainte, int utilisateurId) {
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE id_contrainte = ? AND id_utilisateur = ?";
+        try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idContrainte);
+            ps.setInt(2, utilisateurId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Contrainte c = mapRow(rs);
+                    return Optional.of(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public List<Contrainte> getAllByUtilisateur(int utilisateurId) {
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE id_utilisateur = ? ORDER BY id_contrainte DESC";
+        List<Contrainte> list = new ArrayList<>();
+        try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, utilisateurId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Contrainte c = mapRow(rs);
+                    list.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public List<Contrainte> getContraintesActivesByUtilisateur(int utilisateurId) {
+        String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE statut = ? AND id_utilisateur = ? ORDER BY id_contrainte DESC";
+        List<Contrainte> list = new ArrayList<>();
+        try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, StatutContrainte.ACTIVE.name());
+            ps.setInt(2, utilisateurId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Contrainte c = mapRow(rs);
+                    list.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     @Override
     public int ajouter(Contrainte contrainte) {
         String sql = "INSERT INTO contrainte (titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = Connect.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, contrainte.getTitre());
             ps.setString(2, contrainte.getType() != null ? contrainte.getType().name() : null);
             LocalTime hd = contrainte.getDateHeureDeb();
             LocalTime hf = contrainte.getDateHeureFin();
-            if (hd != null) ps.setTime(3, Time.valueOf(hd)); else ps.setNull(3, Types.TIME);
-            if (hf != null) ps.setTime(4, Time.valueOf(hf)); else ps.setNull(4, Types.TIME);
+            if (hd != null)
+                ps.setTime(3, Time.valueOf(hd));
+            else
+                ps.setNull(3, Types.TIME);
+            if (hf != null)
+                ps.setTime(4, Time.valueOf(hf));
+            else
+                ps.setNull(4, Types.TIME);
             ps.setInt(5, contrainte.isRepetitif() ? 1 : 0);
 
             ps.setString(6, datesToJson(contrainte.getDatesSpecifiques()));
@@ -44,7 +105,9 @@ public class ContrainteDAOImpl implements ContrainteDAO {
                     }
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return -1;
     }
 
@@ -56,8 +119,14 @@ public class ContrainteDAOImpl implements ContrainteDAO {
             ps.setString(2, contrainte.getType() != null ? contrainte.getType().name() : null);
             LocalTime hd = contrainte.getDateHeureDeb();
             LocalTime hf = contrainte.getDateHeureFin();
-            if (hd != null) ps.setTime(3, Time.valueOf(hd)); else ps.setNull(3, Types.TIME);
-            if (hf != null) ps.setTime(4, Time.valueOf(hf)); else ps.setNull(4, Types.TIME);
+            if (hd != null)
+                ps.setTime(3, Time.valueOf(hd));
+            else
+                ps.setNull(3, Types.TIME);
+            if (hf != null)
+                ps.setTime(4, Time.valueOf(hf));
+            else
+                ps.setNull(4, Types.TIME);
             ps.setInt(5, contrainte.isRepetitif() ? 1 : 0);
 
             ps.setString(6, datesToJson(contrainte.getDatesSpecifiques()));
@@ -67,7 +136,9 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
             ps.setInt(10, contrainte.getId());
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -77,7 +148,9 @@ public class ContrainteDAOImpl implements ContrainteDAO {
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idContrainte);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -92,7 +165,9 @@ public class ContrainteDAOImpl implements ContrainteDAO {
                     return Optional.of(c);
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return Optional.empty();
     }
 
@@ -100,12 +175,16 @@ public class ContrainteDAOImpl implements ContrainteDAO {
     public List<Contrainte> getAll() {
         String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte ORDER BY id_contrainte DESC";
         List<Contrainte> list = new ArrayList<>();
-        try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = Connect.getConnection();
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Contrainte c = mapRow(rs);
                 list.add(c);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -116,13 +195,15 @@ public class ContrainteDAOImpl implements ContrainteDAO {
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTime(1, Time.valueOf(heureDebut));
             ps.setTime(2, Time.valueOf(heureFin));
-            try (ResultSet rs = ps.executeQuery()) { 
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Contrainte c = mapRow(rs);
                     list.add(c);
-                } 
+                }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -130,12 +211,16 @@ public class ContrainteDAOImpl implements ContrainteDAO {
     public List<Contrainte> getRepetitives() {
         String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE repetitif = 1";
         List<Contrainte> list = new ArrayList<>();
-        try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = Connect.getConnection();
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Contrainte c = mapRow(rs);
                 list.add(c);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -143,21 +228,30 @@ public class ContrainteDAOImpl implements ContrainteDAO {
     public List<Contrainte> getNonRepetitives() {
         String sql = "SELECT id_contrainte, titre, type_contrainte, heure_debut, heure_fin, repetitif, dates_specifiques, jours, statut, id_utilisateur FROM contrainte WHERE repetitif = 0";
         List<Contrainte> list = new ArrayList<>();
-        try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = Connect.getConnection();
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Contrainte c = mapRow(rs);
                 list.add(c);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
     @Override
     public int compterToutesLesContraintes() {
         String sql = "SELECT COUNT(*) FROM contrainte";
-        try (Connection conn = Connect.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-            if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
+        try (Connection conn = Connect.getConnection();
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next())
+                return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
@@ -173,7 +267,9 @@ public class ContrainteDAOImpl implements ContrainteDAO {
                     list.add(c);
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -193,9 +289,12 @@ public class ContrainteDAOImpl implements ContrainteDAO {
         try (Connection conn = Connect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, statut != null ? statut.name() : "ACTIVE");
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next())
+                    return rs.getInt(1);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
@@ -206,23 +305,25 @@ public class ContrainteDAOImpl implements ContrainteDAO {
         c.setTitre(rs.getString("titre"));
         String type = rs.getString("type_contrainte");
         if (type != null && !type.trim().isEmpty()) {
-            try { 
-                c.setType(TypeContrainte.valueOf(type)); 
-            } catch (IllegalArgumentException e) { 
+            try {
+                c.setType(TypeContrainte.valueOf(type));
+            } catch (IllegalArgumentException e) {
                 System.err.println("Invalid TypeContrainte value: " + type);
             }
         }
         Time tDeb = rs.getTime("heure_debut");
         Time tFin = rs.getTime("heure_fin");
-        if (tDeb != null) c.setDateHeureDeb(tDeb.toLocalTime());
-        if (tFin != null) c.setDateHeureFin(tFin.toLocalTime());
+        if (tDeb != null)
+            c.setDateHeureDeb(tDeb.toLocalTime());
+        if (tFin != null)
+            c.setDateHeureFin(tFin.toLocalTime());
         c.setRepetitif(rs.getBoolean("repetitif"));
 
         String datesJson = rs.getString("dates_specifiques");
         c.setDatesSpecifiques(parseDatesFromJson(datesJson));
         String joursJson = rs.getString("jours");
         c.setJoursSemaine(parseJoursFromJson(joursJson));
-        
+
         String statut = rs.getString("statut");
         if (statut != null && !statut.trim().isEmpty()) {
             try {
@@ -232,7 +333,7 @@ public class ContrainteDAOImpl implements ContrainteDAO {
                 c.setStatut(StatutContrainte.ACTIVE); // default
             }
         }
-        
+
         c.setUtilisateurId(rs.getInt("id_utilisateur"));
 
         return c;
@@ -240,35 +341,45 @@ public class ContrainteDAOImpl implements ContrainteDAO {
 
     // ---------- JSON helpers (dates_specifiques / jours) ----------
     private String datesToJson(List<LocalDate> dates) {
-        if (dates == null || dates.isEmpty()) return null;
+        if (dates == null || dates.isEmpty())
+            return null;
         return "[" + dates.stream().map(d -> "\"" + d.toString() + "\"").collect(Collectors.joining(",")) + "]";
     }
 
     private List<LocalDate> parseDatesFromJson(String json) {
         List<LocalDate> res = new ArrayList<>();
-        if (json == null || json.trim().isEmpty()) return res;
+        if (json == null || json.trim().isEmpty())
+            return res;
         Pattern p = Pattern.compile("\"([^\"]*)\"");
         Matcher m = p.matcher(json);
         while (m.find()) {
             String val = m.group(1);
-            try { res.add(LocalDate.parse(val)); } catch (Exception e) { /* ignore invalid */ }
+            try {
+                res.add(LocalDate.parse(val));
+            } catch (Exception e) {
+                /* ignore invalid */ }
         }
         return res;
     }
 
     private String joursToJson(List<java.time.DayOfWeek> jours) {
-        if (jours == null || jours.isEmpty()) return null;
+        if (jours == null || jours.isEmpty())
+            return null;
         return "[" + jours.stream().map(j -> "\"" + j.name() + "\"").collect(Collectors.joining(",")) + "]";
     }
 
     private List<java.time.DayOfWeek> parseJoursFromJson(String json) {
         List<java.time.DayOfWeek> res = new ArrayList<>();
-        if (json == null || json.trim().isEmpty()) return res;
+        if (json == null || json.trim().isEmpty())
+            return res;
         Pattern p = Pattern.compile("\"([^\"]*)\"");
         Matcher m = p.matcher(json);
         while (m.find()) {
             String val = m.group(1);
-            try { res.add(java.time.DayOfWeek.valueOf(val)); } catch (Exception e) { /* ignore invalid */ }
+            try {
+                res.add(java.time.DayOfWeek.valueOf(val));
+            } catch (Exception e) {
+                /* ignore invalid */ }
         }
         return res;
     }

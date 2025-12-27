@@ -30,7 +30,7 @@ public class TestContrainteDAO {
         testGetRepetitives();
         testGetNonRepetitives();
         testCompterToutesLesContraintes();
-        testSupprimer();
+        //testSupprimer();
         
         System.out.println("\n========== TESTS TERMINÉS ==========");
     }

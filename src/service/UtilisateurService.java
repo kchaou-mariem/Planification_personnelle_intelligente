@@ -10,7 +10,8 @@ public interface UtilisateurService {
     boolean supprimerUtilisateur(int id);
     Utilisateur getUtilisateurById(int id);
     List<Utilisateur> getAllUtilisateurs();
-    
+    Utilisateur getUtilisateurByEmail(String email);
+
     // Modifications spécifiques
     boolean modifierNom(int userId, String nouveauNom);
     boolean modifierPrenom(int userId, String nouveauPrenom);

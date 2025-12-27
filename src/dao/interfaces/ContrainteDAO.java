@@ -8,33 +8,37 @@ import entities.Contrainte;
 import entities.StatutContrainte;
 import entities.TypeContrainte;
 
-/**
- * Interface DAO pour la table `contrainte`.
- */
 public interface ContrainteDAO {
+    // Méthodes filtrées par utilisateur
+    Optional<Contrainte> getByIdAndUtilisateur(int idContrainte, int utilisateurId);
+
+    List<Contrainte> getAllByUtilisateur(int utilisateurId);
+
+    List<Contrainte> getContraintesActivesByUtilisateur(int utilisateurId);
+
+    List<Contrainte> getContraintesByStatut(StatutContrainte statut);
+
+    List<Contrainte> getContraintesActives();
+
+    List<Contrainte> getContraintesDesactives();
 
     int ajouter(Contrainte contrainte);
-    boolean modifier(Contrainte contrainte);
-    boolean supprimer(int idContrainte);
-    Optional<Contrainte> getById(int idContrainte);
-    List<Contrainte> getAll();
 
-    // Requêtes utilitaires
-    //List<Contrainte> getByActivite(Long idActivite);
-    //List<Contrainte> getByUtilisateur(Long idUtilisateur);
+    boolean modifier(Contrainte contrainte);
+
+    boolean supprimer(int idContrainte);
+
+    Optional<Contrainte> getById(int idContrainte);
+
+    List<Contrainte> getAll();
 
     List<Contrainte> getByPeriode(LocalTime heureDebut, LocalTime heureFin);
 
     List<Contrainte> getRepetitives();
+
     List<Contrainte> getNonRepetitives();
 
     int compterToutesLesContraintes();
-    //int compterParUtilisateur(Long idUtilisateur);
 
-    // Méthodes pour gérer le statut des contraintes
-    List<Contrainte> getContraintesByStatut(StatutContrainte statut);
-    List<Contrainte> getContraintesActives();
-    List<Contrainte> getContraintesDesactives();
     int compterContraintesByStatut(StatutContrainte statut);
-
 }

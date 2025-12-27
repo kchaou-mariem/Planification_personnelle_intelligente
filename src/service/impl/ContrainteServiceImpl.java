@@ -12,278 +12,282 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Implémentation du service ContrainteService.
- * Gère la logique métier liée aux contraintes.
- */
 public class ContrainteServiceImpl implements ContrainteService {
-    
+
     private ContrainteDAO contrainteDAO;
-    
+
     public ContrainteServiceImpl() {
         this.contrainteDAO = new ContrainteDAOImpl();
     }
-    
+
     public ContrainteServiceImpl(ContrainteDAO contrainteDAO) {
         this.contrainteDAO = contrainteDAO;
     }
-    
+
     @Override
-    public int ajouterContrainte(Contrainte contrainte) {
+    public Contrainte getById(int id) {
+        if (id <= 0) {
+            return null;
+        }
+        return contrainteDAO.getById(id).orElse(null);
+    }
+
+    @Override
+    public List<Contrainte> getAll() {
+        return contrainteDAO.getAll();
+    }
+
+    @Override
+    public List<Contrainte> getByUtilisateur(int utilisateurId) {
+        if (utilisateurId <= 0) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId);
+    }
+
+    @Override
+    public List<Contrainte> getContraintesActives(int utilisateurId) {
+        if (utilisateurId <= 0) {
+            return List.of();
+        }
+        return contrainteDAO.getContraintesActivesByUtilisateur(utilisateurId);
+    }
+
+    @Override
+    public boolean ajouter(Contrainte contrainte) {
         if (contrainte == null) {
-            System.err.println("Erreur: impossible d'ajouter une contrainte null");
-            return -1;
+            System.err.println("Erreur: contrainte null");
+            return false;
         }
-        
+
         if (contrainte.getTitre() == null || contrainte.getTitre().trim().isEmpty()) {
-            System.err.println("Erreur: le titre de la contrainte est requis");
-            return -1;
+            System.err.println("Erreur: titre requis");
+            return false;
         }
-        
+
         if (contrainte.getType() == null) {
-            System.err.println("Erreur: le type de contrainte est requis");
-            return -1;
+            System.err.println("Erreur: type requis");
+            return false;
         }
-        
+
         if (contrainte.getDateHeureDeb() == null || contrainte.getDateHeureFin() == null) {
-            System.err.println("Erreur: les horaires de début et fin sont requis");
-            return -1;
+            System.err.println("Erreur: horaires requis");
+            return false;
         }
-        
+
         if (contrainte.getDateHeureDeb().isAfter(contrainte.getDateHeureFin())) {
-            System.err.println("Erreur: l'heure de début doit être antérieure à l'heure de fin");
-            return -1;
+            System.err.println("Erreur: heure début > heure fin");
+            return false;
         }
-        
-        // Validation: si repetitif est false, joursSemaine ne doit pas être rempli
-        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null && !contrainte.getJoursSemaine().isEmpty()) {
-            System.err.println("Erreur: impossible de remplir les jours de la semaine si la contrainte n'est pas répétitive");
-            return -1;
+
+        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null
+                && !contrainte.getJoursSemaine().isEmpty()) {
+            System.err.println("Erreur: jours semaine non vide pour non répétitif");
+            return false;
         }
-        
-        // Validation: si repetitif est true, joursSemaine est obligatoire
-        if (contrainte.isRepetitif() && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
-            System.err.println("Erreur: une contrainte répétitive doit obligatoirement avoir des jours de la semaine");
-            return -1;
+
+        if (contrainte.isRepetitif()
+                && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
+            System.err.println("Erreur: jours semaine requis pour répétitif");
+            return false;
         }
-        
-        // Validation: utilisateur ID requis
+
         if (contrainte.getUtilisateurId() <= 0) {
-            System.err.println("Erreur: l'ID utilisateur est requis");
-            return -1;
+            System.err.println("Erreur: ID utilisateur invalide");
+            return false;
         }
-        
-        // Par défaut, une nouvelle contrainte est ACTIVE
+
         if (contrainte.getStatut() == null) {
             contrainte.setStatut(StatutContrainte.ACTIVE);
         }
-        
-        return contrainteDAO.ajouter(contrainte);
+
+        // ⚠️ CORRECTION IMPORTANTE : Récupérer l'ID généré par la base
+        int idGenere = contrainteDAO.ajouter(contrainte);
+        if (idGenere > 0) {
+            contrainte.setId(idGenere);  // ⚠️ METTRE À JOUR L'ID DANS L'OBJET
+            return true;
+        }
+        return false;
     }
-    
+
     @Override
-    public boolean modifierContrainte(Contrainte contrainte) {
+    public boolean modifier(Contrainte contrainte) {
         if (contrainte == null || contrainte.getId() <= 0) {
-            System.err.println("Erreur: impossible de modifier une contrainte sans ID");
+            System.err.println("Erreur: contrainte sans ID");
             return false;
         }
-        
+
         if (contrainte.getDateHeureDeb() != null && contrainte.getDateHeureFin() != null) {
             if (contrainte.getDateHeureDeb().isAfter(contrainte.getDateHeureFin())) {
-                System.err.println("Erreur: l'heure de début doit être antérieure à l'heure de fin");
+                System.err.println("Erreur: heure début > heure fin");
                 return false;
             }
         }
-        
-        // Validation: si repetitif est false, joursSemaine ne doit pas être rempli
-        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null && !contrainte.getJoursSemaine().isEmpty()) {
-            System.err.println("Erreur: impossible de remplir les jours de la semaine si la contrainte n'est pas répétitive");
+
+        if (!contrainte.isRepetitif() && contrainte.getJoursSemaine() != null
+                && !contrainte.getJoursSemaine().isEmpty()) {
+            System.err.println("Erreur: jours semaine non vide pour non répétitif");
             return false;
         }
-        
-        // Validation: si repetitif est true, joursSemaine est obligatoire
-        if (contrainte.isRepetitif() && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
-            System.err.println("Erreur: une contrainte répétitive doit obligatoirement avoir des jours de la semaine");
+
+        if (contrainte.isRepetitif()
+                && (contrainte.getJoursSemaine() == null || contrainte.getJoursSemaine().isEmpty())) {
+            System.err.println("Erreur: jours semaine requis pour répétitif");
             return false;
         }
-        
+
         return contrainteDAO.modifier(contrainte);
     }
-    
+
     @Override
-    public boolean supprimerContrainte(int idContrainte) {
-        if (idContrainte <= 0) {
+    public boolean supprimer(int id) {
+        if (id <= 0) {
             System.err.println("Erreur: ID invalide");
             return false;
         }
-        
-        return contrainteDAO.supprimer(idContrainte);
+        return contrainteDAO.supprimer(id);
     }
-    
+
     @Override
-    public Optional<Contrainte> getContrainteById(int idContrainte) {
-        if (idContrainte <= 0) {
-            return Optional.empty();
-        }
-        
-        return contrainteDAO.getById(idContrainte);
-    }
-    
-    @Override
-    public List<Contrainte> getToutesLesContraintes() {
-        return contrainteDAO.getAll();
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesActives() {
-        return contrainteDAO.getContraintesActives();
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesDesactives() {
-        return contrainteDAO.getContraintesDesactives();
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesByStatut(StatutContrainte statut) {
-        if (statut == null) {
-            return List.of();
-        }
-        
-        return contrainteDAO.getContraintesByStatut(statut);
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesByPeriode(LocalTime heureDebut, LocalTime heureFin) {
-        if (heureDebut == null || heureFin == null || heureDebut.isAfter(heureFin)) {
-            System.err.println("Erreur: plage horaire invalide");
-            return List.of();
-        }
-        
-        return contrainteDAO.getByPeriode(heureDebut, heureFin);
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesRepetitives() {
-        return contrainteDAO.getRepetitives();
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesNonRepetitives() {
-        return contrainteDAO.getNonRepetitives();
-    }
-    
-    @Override
-    public List<Contrainte> getContraintesByType(TypeContrainte type) {
-        if (type == null) {
-            return List.of();
-        }
-        
-        return contrainteDAO.getAll().stream()
-            .filter(c -> c.getType() == type)
-            .collect(Collectors.toList());
-    }
-    
-    @Override
-    public boolean activerContrainte(int idContrainte) {
-        Optional<Contrainte> contrainteOpt = getContrainteById(idContrainte);
-        
-        if (contrainteOpt.isEmpty()) {
-            System.err.println("Contrainte introuvable avec l'ID: " + idContrainte);
+    public boolean toggleStatut(int id) {
+        Contrainte contrainte = getById(id);
+        if (contrainte == null) {
+            System.err.println("Contrainte avec ID " + id + " non trouvée");
             return false;
         }
         
-        Contrainte contrainte = contrainteOpt.get();
         if (contrainte.getStatut() == StatutContrainte.ACTIVE) {
-            System.out.println("Info: la contrainte est déjà active");
-            return true;
+            contrainte.setStatut(StatutContrainte.DESACTIVE);
+        } else {
+            contrainte.setStatut(StatutContrainte.ACTIVE);
         }
         
-        contrainte.setStatut(StatutContrainte.ACTIVE);
-        return modifierContrainte(contrainte);
+        return modifier(contrainte);
     }
+
     
+    // Méthodes supplémentaires avec userId
     @Override
-    public boolean desactiverContrainte(int idContrainte) {
-        Optional<Contrainte> contrainteOpt = getContrainteById(idContrainte);
-        
-        if (contrainteOpt.isEmpty()) {
-            System.err.println("Contrainte introuvable avec l'ID: " + idContrainte);
-            return false;
+    public List<Contrainte> getContraintesDesactives(int utilisateurId) {
+        if (utilisateurId <= 0) {
+            return List.of();
         }
-        
-        Contrainte contrainte = contrainteOpt.get();
-        if (contrainte.getStatut() == StatutContrainte.DESACTIVE) {
-            System.out.println("Info: la contrainte est déjà inactive");
-            return true;
-        }
-        
-        contrainte.setStatut(StatutContrainte.DESACTIVE);
-        return modifierContrainte(contrainte);
+        return getContraintesByStatut(utilisateurId, StatutContrainte.DESACTIVE);
     }
-    
+
     @Override
-    public boolean changerStatutContrainte(int idContrainte, StatutContrainte newStatut) {
-        if (newStatut == null) {
-            System.err.println("Erreur: le nouveau statut ne peut pas être null");
+    public List<Contrainte> getContraintesByStatut(int utilisateurId, StatutContrainte statut) {
+        if (utilisateurId <= 0 || statut == null) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId).stream()
+                .filter(c -> c.getStatut() == statut)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Contrainte> getContraintesByPeriode(int utilisateurId, LocalTime heureDebut, LocalTime heureFin) {
+        if (utilisateurId <= 0 || heureDebut == null || heureFin == null || heureDebut.isAfter(heureFin)) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId).stream()
+                .filter(c -> c.getDateHeureDeb() != null && c.getDateHeureFin() != null)
+                .filter(c -> !(c.getDateHeureFin().compareTo(heureDebut) <= 0 ||
+                        c.getDateHeureDeb().compareTo(heureFin) >= 0))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Contrainte> getContraintesRepetitives(int utilisateurId) {
+        if (utilisateurId <= 0) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId).stream()
+                .filter(Contrainte::isRepetitif)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Contrainte> getContraintesNonRepetitives(int utilisateurId) {
+        if (utilisateurId <= 0) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId).stream()
+                .filter(c -> !c.isRepetitif())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Contrainte> getContraintesByType(int utilisateurId, TypeContrainte type) {
+        if (utilisateurId <= 0 || type == null) {
+            return List.of();
+        }
+        return contrainteDAO.getAllByUtilisateur(utilisateurId).stream()
+                .filter(c -> c.getType() == type)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean activerContrainte(int idContrainte, int utilisateurId) {
+        return changerStatutContrainte(idContrainte, utilisateurId, StatutContrainte.ACTIVE);
+    }
+
+    @Override
+    public boolean desactiverContrainte(int idContrainte, int utilisateurId) {
+        return changerStatutContrainte(idContrainte, utilisateurId, StatutContrainte.DESACTIVE);
+    }
+
+    @Override
+    public boolean changerStatutContrainte(int idContrainte, int utilisateurId, StatutContrainte newStatut) {
+        if (newStatut == null || idContrainte <= 0 || utilisateurId <= 0) {
             return false;
         }
-        
-        Optional<Contrainte> contrainteOpt = getContrainteById(idContrainte);
-        
+
+        Optional<Contrainte> contrainteOpt = contrainteDAO.getByIdAndUtilisateur(idContrainte, utilisateurId);
         if (contrainteOpt.isEmpty()) {
-            System.err.println("Contrainte introuvable avec l'ID: " + idContrainte);
             return false;
         }
-        
+
         Contrainte contrainte = contrainteOpt.get();
         contrainte.setStatut(newStatut);
-        return modifierContrainte(contrainte);
+        return contrainteDAO.modifier(contrainte);
     }
-    
+
     @Override
-    public int compterToutesLesContraintes() {
-        return contrainteDAO.compterToutesLesContraintes();
-    }
-    
-    @Override
-    public int compterContraintesByStatut(StatutContrainte statut) {
-        if (statut == null) {
+    public int compterContraintesByStatut(int utilisateurId, StatutContrainte statut) {
+        if (utilisateurId <= 0 || statut == null) {
             return 0;
         }
-        
-        return contrainteDAO.compterContraintesByStatut(statut);
+        return getContraintesByStatut(utilisateurId, statut).size();
     }
-    
+
     @Override
-    public int compterContraintesActives() {
-        return compterContraintesByStatut(StatutContrainte.ACTIVE);
+    public int compterContraintesActives(int utilisateurId) {
+        return compterContraintesByStatut(utilisateurId, StatutContrainte.ACTIVE);
     }
-    
+
     @Override
-    public int compterContraintesDesactives() {
-        return compterContraintesByStatut(StatutContrainte.DESACTIVE);
+    public int compterContraintesDesactives(int utilisateurId) {
+        return compterContraintesByStatut(utilisateurId, StatutContrainte.DESACTIVE);
     }
-    
+
     @Override
     public boolean estEnConflit(Contrainte contrainte, LocalTime heureDebut, LocalTime heureFin) {
         if (contrainte == null || heureDebut == null || heureFin == null) {
             return false;
         }
-        
+
         if (heureDebut.isAfter(heureFin)) {
             return false;
         }
-        
+
         LocalTime debContrainte = contrainte.getDateHeureDeb();
         LocalTime finContrainte = contrainte.getDateHeureFin();
-        
+
         if (debContrainte == null || finContrainte == null) {
             return false;
         }
-        
-        // Il y a conflit si les plages horaires se chevauchent
-        // Pas de conflit si: fin de contrainte <= debut de plage OU debut de contrainte >= fin de plage
+
         return !(finContrainte.compareTo(heureDebut) <= 0 || debContrainte.compareTo(heureFin) >= 0);
     }
 }

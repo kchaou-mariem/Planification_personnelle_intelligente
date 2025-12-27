@@ -1,6 +1,5 @@
 package entities;
 
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +48,12 @@ public class Activite {
 		this.idUtilisateur = idUtilisateur;
 		this.dateCreation = LocalDateTime.now();
 	}
+
+	public Activite() {
+		super();
+		this.dateCreation = LocalDateTime.now();
+	}
+
 	public Long getIdActivite() {
 		return idActivite;
 	}
@@ -57,11 +62,9 @@ public class Activite {
 		this.idActivite = idActivite;
 	}
 
-
 	public String getTitre() {
 		return titre;
 	}
-
 
 	public void setTitre(String titre) {
 		this.titre = titre;
@@ -87,36 +90,29 @@ public class Activite {
 		return priorite;
 	}
 
-
 	public void setPriorite(Integer priorite) {
 		this.priorite = priorite;
 	}
-
 
 	public LocalDateTime getDeadline() {
 		return deadline;
 	}
 
-
 	public void setDeadline(LocalDateTime deadline) {
 		this.deadline = deadline;
 	}
-
 
 	public LocalDateTime getHoraireDebut() {
 		return horaireDebut;
 	}
 
-
 	public void setHoraireDebut(LocalDateTime horaireDebut) {
 		this.horaireDebut = horaireDebut;
 	}
 
-
 	public LocalDateTime getHoraireFin() {
 		return horaireFin;
 	}
-
 
 	public void setHoraireFin(LocalDateTime horaireFin) {
 		this.horaireFin = horaireFin;
@@ -137,6 +133,7 @@ public class Activite {
 	public void setDateCreation(LocalDateTime dateCreation) {
 		this.dateCreation = dateCreation;
 	}
+
 	@Override
 	public String toString() {
 		return "Activite [idActivite=" + idActivite + ", titre=" + titre + ", typeActivite=" + typeActivite
@@ -144,10 +141,11 @@ public class Activite {
 				+ ", deadline=" + deadline + ", horaireDebut=" + horaireDebut + ", horaireFin=" + horaireFin
 				+ ", idUtilisateur=" + idUtilisateur + ", dateCreation=" + dateCreation + "]";
 	}
+
 	public boolean ajouterActivite(String titre, TypeActivite typeActivite, Integer priorite,
-            LocalDateTime deadline, LocalDateTime horaireDebut,
-            LocalDateTime horaireFin,
-            List<Activite> activitesExistantes) {
+			LocalDateTime deadline, LocalDateTime horaireDebut,
+			LocalDateTime horaireFin,
+			List<Activite> activitesExistantes) {
 
 		// ✅ 1. Vérification logique des horaires
 		if (horaireDebut.isAfter(horaireFin) || horaireDebut.isEqual(horaireFin)) {
@@ -157,8 +155,7 @@ public class Activite {
 
 		// ✅ 2. Vérification de chevauchement avec les autres activités
 		for (Activite a : activitesExistantes) {
-			boolean chevauchement =
-					horaireDebut.isBefore(a.getHoraireFin()) &&
+			boolean chevauchement = horaireDebut.isBefore(a.getHoraireFin()) &&
 					horaireFin.isAfter(a.getHoraireDebut());
 
 			if (chevauchement) {
@@ -175,35 +172,37 @@ public class Activite {
 		this.horaireFin = horaireFin;
 		this.dateCreation = LocalDateTime.now();
 
-		return true; 
+		return true;
 	}
+
 	public static boolean supprimerActivite(String titre, List<Activite> activites) {
 
-	    for (int i = 0; i < activites.size(); i++) {
-	        if (activites.get(i).getTitre().equalsIgnoreCase(titre)) {
-	            activites.remove(i);
-	            return true; // ✅ suppression réussie
-	        }
-	    }
+		for (int i = 0; i < activites.size(); i++) {
+			if (activites.get(i).getTitre().equalsIgnoreCase(titre)) {
+				activites.remove(i);
+				return true; // ✅ suppression réussie
+			}
+		}
 
-	    return false; // ❌ activité non trouvée
+		return false; // ❌ activité non trouvée
 	}
+
 	public static boolean modifierActivite(String ancienTitre,
-            String nouveauTitre,
-            TypeActivite nouveauType,
-            int nouvelleDuree,
-            int nouvellePriorite,
-            LocalDateTime nouveauDeadline,
-            LocalDateTime nouveauHoraireDebut,
-            LocalDateTime nouveauHoraireFin,
-            List<Activite> activites) {
+			String nouveauTitre,
+			TypeActivite nouveauType,
+			int nouvelleDuree,
+			int nouvellePriorite,
+			LocalDateTime nouveauDeadline,
+			LocalDateTime nouveauHoraireDebut,
+			LocalDateTime nouveauHoraireFin,
+			List<Activite> activites) {
 
 		// ✅ 1. Vérification logique des horaires
 		if (nouveauHoraireDebut.isAfter(nouveauHoraireFin)
 				|| nouveauHoraireDebut.isEqual(nouveauHoraireFin)) {
 			System.out.println("Erreur : horaire de début invalide.");
 			return false;
-}
+		}
 
 		// ✅ 2. Recherche de l’activité à modifier
 		Activite activiteAModifier = null;
@@ -211,42 +210,40 @@ public class Activite {
 			if (a.getTitre().equalsIgnoreCase(ancienTitre)) {
 				activiteAModifier = a;
 				break;
-}
-}
+			}
+		}
 
 		if (activiteAModifier == null) {
 			System.out.println("Activité non trouvée.");
 			return false;
-}
+		}
 
-// ✅ 3. Vérification de chevauchement (en ignorant l’activité courante)
+		// ✅ 3. Vérification de chevauchement (en ignorant l’activité courante)
 
 		for (Activite a : activites) {
 
-			if (a == activiteAModifier) continue;
+			if (a == activiteAModifier)
+				continue;
 
-			boolean chevauchement =
-					nouveauHoraireDebut.isBefore(a.getHoraireFin()) &&
+			boolean chevauchement = nouveauHoraireDebut.isBefore(a.getHoraireFin()) &&
 					nouveauHoraireFin.isAfter(a.getHoraireDebut());
 
 			if (chevauchement) {
 
 				System.out.println("Conflit avec l'activité : " + a.getTitre());
 				return false;
-}
-}
+			}
+		}
 
 		// ✅ 4. Application de TOUTES les modifications
 		activiteAModifier.setTitre(nouveauTitre);
-		
+
 		activiteAModifier.setPriorite(nouvellePriorite);
 		activiteAModifier.setDeadline(nouveauDeadline);
 		activiteAModifier.setHoraireDebut(nouveauHoraireDebut);
 		activiteAModifier.setHoraireFin(nouveauHoraireFin);
 
 		return true; // ✅ Modification réussie
-}
-
-
+	}
 
 }

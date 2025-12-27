@@ -49,7 +49,7 @@ public class TestDatabaseOperations {
             
             // Messages d'aide selon l'erreur
             if (e.getMessage().contains("Communications link failure")) {
-                System.out.println("\n💡 Solution: MySQL n'est pas démarré ou n'écoute pas sur le port 3306");
+                System.out.println("\n💡 Solution: MySQL n'est pas démarré ou n'écoute pas sur le port 3307");
                 System.out.println("   Vérifiez: Get-Service | Where-Object {$_.Name -like '*mysql*'}");
             } else if (e.getMessage().contains("Unknown database")) {
                 System.out.println("\n💡 Solution: La base 'personal_planner' n'existe pas");

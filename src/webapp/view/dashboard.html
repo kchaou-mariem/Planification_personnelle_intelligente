@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Planification Personnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .score-card {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-max {
+            font-size: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .score-bar {
+            background: rgba(255,255,255,0.2);
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .score-progress {
+            background: white;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .optimize-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-top: var(--space-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .optimize-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .optimize-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+        }
+
+        .optimize-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .validation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .validation-badge.valid {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-success);
+        }
+
+        .validation-badge.invalid {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-danger);
+        }
+
+        .spinner-inline {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📅</div>
+                <span class="sidebar-brand">Planificateur</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu</div>
+                    <a href="dashboard.html" class="nav-item active">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Tableau de bord</span>
+                    </a>
+                    <a href="activites.html" class="nav-item">
+                        <span class="nav-icon">📌</span>
+                        <span class="nav-label">Activités</span>
+                    </a>
+                    <a href="contraintes.html" class="nav-item">
+                        <span class="nav-icon">⏰</span>
+                        <span class="nav-label">Contraintes</span>
+                    </a>
+                    <a href="conflits.html" class="nav-item">
+                        <span class="nav-icon">⚠️</span>
+                        <span class="nav-label">Conflits</span>
+                    </a>
+                    <a href="calendrier.html" class="nav-item">
+                        <span class="nav-icon">📆</span>
+                        <span class="nav-label">Calendrier</span>
+                    </a>
+  
+                    <a href="statistiques.html" class="nav-item">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Statistiques</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Paramètres</div>
+                    <a href="profil.html" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-label">Mon profil</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="Utils.toggleTheme(); return false;">
+                        <span class="nav-icon">🌓</span>
+                        <span class="nav-label">Thème</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-card" id="userCard">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilisateur</div>
+                        <div class="user-email" id="userEmail">email@example.com</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-full mt-md" onclick="Auth.logout()">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="navbar">
+                <div>
+                    <h1 class="navbar-title">Tableau de bord</h1>
+                    <p class="text-muted" id="welcomeMessage">Bienvenue !</p>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-primary" onclick="Utils.openModal('addActivityModal')">
+                        + Nouvelle activité
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-4 mt-xl">
+                <!-- Score Card -->
+                <div class="card stat-card score-card">
+                    <div class="stat-label" style="color: white; opacity: 0.9;">Score du Planning</div>
+                    <div class="score-display">
+                        <span class="score-value" id="scoreValue">--</span>
+                        <span class="score-max">/ 500</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-progress" id="scoreProgress" style="width: 0%"></div>
+                    </div>
+                    <div id="validationBadge"></div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-value" id="statActivites">0</div>
+                    <div class="stat-label">Activités</div>
+                    <div class="stat-trend positive" id="trendActivites">
+                        <span>📈</span> Cette semaine
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-value" id="statContraintes">0</div>
+                    <div class="stat-label">Contraintes actives</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-value" id="statConflits">0</div>
+                    <div class="stat-label">Conflits à résoudre</div>
+                    <div class="stat-trend negative hidden" id="trendConflits">
+                        <span>⚠️</span> Attention requise
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Section -->
+            <div class="optimize-section">
+                <h3 style="margin-bottom: 15px;">🚀 Optimisation du Planning</h3>
+                <p class="text-muted" style="margin-bottom: 20px;">
+                    Utilisez l'algorithme d'optimisation pour améliorer automatiquement votre planning selon vos contraintes et priorités.
+                </p>
+                <button class="btn optimize-btn" id="optimizeBtn" onclick="optimiserPlanning()">
+                    <span id="optimizeText">✨ Optimiser mon Planning</span>
+                    <span id="optimizeLoading" style="display: none;">
+                        <div class="spinner-inline"></div>
+                        Optimisation en cours...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-2 mt-xl">
+                <!-- Today's Activities -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Activités du jour</h3>
+                        <a href="activites.html" class="btn btn-sm btn-secondary">Voir tout</a>
+                    </div>
+                    <div class="card-body" id="todayActivities">
+                        <p class="text-muted text-center">Chargement...</p>
+                    </div>
+                </div>
+
+                <!-- Active Conflicts -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Conflits actifs</h3>
+                        <a href="conflits.html" class="btn btn-sm btn-secondary">Gérer</a>
+                    </div>
+                    <div class="card-body" id="activeConflicts">
+                        <p class="text-muted text-center">Chargement...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Distribution -->
+            <div class="card mt-xl">
+                <div class="card-header">
+                    <h3 class="card-title">Répartition des activités</h3>
+                </div>
+                <div class="card-body">
+                    <div id="activityDistribution" class="flex gap-md flex-wrap">
+                        <!-- Activity type distribution will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Activity Modal -->
+    <div class="modal-overlay" id="addActivityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Nouvelle activité</h3>
+                <button class="modal-close" onclick="Utils.closeModal('addActivityModal')">✕</button>
+            </div>
+            <form id="addActivityForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Titre *</label>
+                        <input type="text" name="titre" class="form-input" placeholder="Ma nouvelle activité" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Type *</label>
+                        <select name="typeActivite" class="form-select" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Sport">🏋️ Sport</option>
+                            <option value="Etude">📚 Étude</option>
+                            <option value="Loisirs">🎲 Loisirs</option>
+                            <option value="Repos">🛌 Repos</option>
+                            <option value="Travail">💼 Travail</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-textarea" rows="2" placeholder="Description..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Priorité *</label>
+                        <select name="priorite" class="form-select" required>
+                            <option value="1">1 - Très basse</option>
+                            <option value="2">2 - Basse</option>
+                            <option value="3" selected>3 - Moyenne</option>
+                            <option value="4">4 - Haute</option>
+                            <option value="5">5 - Très haute</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date limite (Deadline)</label>
+                        <input type="datetime-local" name="deadline" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Horaire début *</label>
+                        <input type="datetime-local" name="horaireDebut" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Horaire fin *</label>
+                        <input type="datetime-local" name="horaireFin" class="form-input" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="Utils.closeModal('addActivityModal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!Auth.requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        const userId = Auth.getUserId();
+
+        // Update user info
+        document.getElementById('userName').textContent = Auth.getUserFullName();
+        document.getElementById('userAvatar').textContent = Auth.getUserInitials();
+        document.getElementById('userEmail').textContent = Auth.getUser()?.email || '';
+        document.getElementById('welcomeMessage').textContent = `Bonjour ${Auth.getUser()?.prenom || 'Utilisateur'} !`;
+
+        // Charger le score
+        async function loadScore() {
+            try {
+                const scoreData = await Api.activites.getScore(userId);
+                const score = Math.round(scoreData.score * 100) / 100;
+                const percentage = Math.min((score / 500) * 100, 100);
+
+                document.getElementById('scoreValue').textContent = score;
+                document.getElementById('scoreProgress').style.width = percentage + '%';
+            } catch (error) {
+                console.error('Erreur chargement score:', error);
+                document.getElementById('scoreValue').textContent = '0';
+            }
+        }
+
+        // Valider le planning
+async function validatePlanning() {
+    try {
+        // ✅ Récupérer les conflits non résolus
+        const conflits = await Api.conflits.getNonResolus(userId);
+        const badgeContainer = document.getElementById('validationBadge');
+
+        // Planning valide = AUCUN conflit non résolu
+        const planningValide = !conflits || conflits.length === 0;
+
+        if (planningValide) {
+            badgeContainer.innerHTML = '<div class="validation-badge valid">✓ Planning valide</div>';
+        } else {
+            badgeContainer.innerHTML = `<div class="validation-badge invalid">✗ ${conflits.length} conflit${conflits.length > 1 ? 's' : ''} détecté${conflits.length > 1 ? 's' : ''}</div>`;
+        }
+    } catch (error) {
+        console.error('Erreur validation:', error);
+        const badgeContainer = document.getElementById('validationBadge');
+        badgeContainer.innerHTML = '<div class="validation-badge invalid">✗ Erreur de validation</div>';
+    }
+}
+
+        // Optimiser le planning
+        async function optimiserPlanning() {
+            const btn = document.getElementById('optimizeBtn');
+            const text = document.getElementById('optimizeText');
+            const loading = document.getElementById('optimizeLoading');
+
+            btn.disabled = true;
+            text.style.display = 'none';
+            loading.style.display = 'flex';
+
+            try {
+                const result = await Api.activites.optimiser(userId, 1000);
+
+                if (result.succes) {
+                    Utils.toast('✅ Planning optimisé avec succès !', 'success');
+                    setTimeout(() => {
+                        loadDashboard();
+                    }, 1000);
+                } else {
+                    Utils.toast('❌ Erreur lors de l\'optimisation', 'danger');
+                }
+            } catch (error) {
+                console.error('Erreur optimisation:', error);
+                Utils.toast('❌ ' + (error.message || 'Erreur lors de l\'optimisation'), 'danger');
+            } finally {
+                btn.disabled = false;
+                text.style.display = 'inline';
+                loading.style.display = 'none';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            await loadScore();
+            await validatePlanning();
+
+            try {
+                const activites = await Api.activites.getAll(userId);
+                document.getElementById('statActivites').textContent = activites.length || 0;
+
+                const today = new Date().toDateString();
+                const todayActs = (activites || []).filter(a => {
+                    const date = new Date(a.horaireDebut).toDateString();
+                    return date === today;
+                });
+
+                renderTodayActivities(todayActs);
+                renderDistribution(activites || []);
+
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                document.getElementById('todayActivities').innerHTML =
+                    '<p class="text-muted">Impossible de charger les activités</p>';
+            }
+
+            try {
+                const contraintes = await Api.contraintes.getAll(userId);
+                const actives = (contraintes || []).filter(c => c.statut === 'ACTIVE');
+                document.getElementById('statContraintes').textContent = actives.length;
+            } catch (error) {
+                console.error('Error loading constraints:', error);
+            }
+
+            try {
+                const conflits = await Api.conflits.getNonResolus(userId);
+                document.getElementById('statConflits').textContent = (conflits || []).length;
+
+                if ((conflits || []).length > 0) {
+                    document.getElementById('trendConflits').classList.remove('hidden');
+                }
+
+                renderActiveConflicts(conflits || []);
+            } catch (error) {
+                console.error('Error loading conflicts:', error);
+                document.getElementById('activeConflicts').innerHTML =
+                    '<p class="text-muted">Aucun conflit</p>';
+            }
+        }
+
+        function renderTodayActivities(activities) {
+            const container = document.getElementById('todayActivities');
+
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Aucune activité aujourd\'hui</p>';
+                return;
+            }
+
+            container.innerHTML = activities.slice(0, 5).map(act => {
+                const debut = new Date(act.horaireDebut);
+                const fin = new Date(act.horaireFin);
+                return `
+                    <div class="flex items-center justify-between p-sm" style="border-bottom: 1px solid var(--border-light);">
+                        <div class="flex items-center gap-md">
+                            <span>📌</span>
+                            <div>
+                                <div style="font-weight: 500;">${act.titre}</div>
+                                <div class="text-muted" style="font-size: 0.875rem;">
+                                    ${debut.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})} - 
+                                    ${fin.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge badge-${(act.typeActivite || '').toLowerCase()}">${act.typeActivite}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderActiveConflicts(conflicts) {
+            const container = document.getElementById('activeConflicts');
+
+            if (!conflicts || conflicts.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">✓ Aucun conflit actif</p>';
+                return;
+            }
+
+            container.innerHTML = conflicts.slice(0, 4).map(conf => {
+                return `
+                    <div class="alert alert-warning mb-sm">
+                        <span>⚠️</span>
+                        <div>
+                            <div style="font-weight: 500;">${conf.typeConflit || 'Conflit détecté'}</div>
+                            <div style="font-size: 0.875rem;">Conflit entre activités</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDistribution(activities) {
+            const container = document.getElementById('activityDistribution');
+            const counts = {};
+
+            activities.forEach(a => {
+                counts[a.typeActivite] = (counts[a.typeActivite] || 0) + 1;
+            });
+
+            const total = activities.length || 1;
+            const types = {
+                'Sport': { label: 'Sport', icon: '🏋️', color: '#3b82f6' },
+                'Etude': { label: 'Étude', icon: '📚', color: '#6366f1' },
+                'Loisirs': { label: 'Loisirs', icon: '🎲', color: '#f59e0b' },
+                'Repos': { label: 'Repos', icon: '🛌', color: '#22c55e' },
+                'Travail': { label: 'Travail', icon: '💼', color: '#8b5cf6' }
+            };
+
+            container.innerHTML = Object.entries(types).map(([key, info]) => {
+                const count = counts[key] || 0;
+                const percent = Math.round((count / total) * 100);
+                return `
+                    <div style="flex: 1; min-width: 120px; text-align: center; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                        <div style="font-size: 1.5rem;">${info.icon}</div>
+                        <div style="font-weight: 600; font-size: 1.25rem; color: ${info.color};">${count}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${info.label} (${percent}%)</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Add activity form
+        document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const data = {
+                idUtilisateur: userId,
+                titre: formData.get('titre'),
+                description: formData.get('description') || '',
+                typeActivite: formData.get('typeActivite'),
+                priorite: parseInt(formData.get('priorite')),
+                deadline: formData.get('deadline') || null,
+                horaireDebut: formData.get('horaireDebut'),
+                horaireFin: formData.get('horaireFin')
+            };
+
+            try {
+                await Api.activites.create(data);
+                Utils.toast('Activité créée !', 'success');
+                Utils.closeModal('addActivityModal');
+                e.target.reset();
+                loadDashboard();
+            } catch (error) {
+                Utils.toast(error.message || 'Erreur lors de la création', 'danger');
+            }
+        });
+
+        // Initial load
+        loadDashboard();
+    </script>
+</body>
+
+</html>

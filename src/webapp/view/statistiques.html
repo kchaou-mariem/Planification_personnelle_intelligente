@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques - Planification Personnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card-big {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-card-big .stat-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .stat-card-big .stat-value-big {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .stat-card-big .stat-label-big {
+            font-size: var(--font-size-base);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .stat-badge {
+            display: inline-block;
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+        }
+
+        .badge-excellent { background: rgba(34, 197, 94, 0.15); color: var(--accent-success); }
+        .badge-bon { background: rgba(59, 130, 246, 0.15); color: var(--accent-info); }
+        .badge-moyen { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+        .badge-faible { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+        .badge-critique { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
+        .badge-modere { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+        .badge-eleve { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin: var(--space-md) 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius-full);
+            transition: width 1s ease;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-color);
+            margin-bottom: var(--space-xl);
+        }
+
+        .chart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-sm);
+        }
+
+        .chart-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .chart-color {
+            width: 20px;
+            height: 20px;
+            border-radius: var(--radius-sm);
+        }
+
+        .color-sport { background: #3b82f6; }
+        .color-etude { background: #6366f1; }
+        .color-loisirs { background: #f59e0b; }
+        .color-repos { background: #22c55e; }
+        .color-travail { background: #8b5cf6; }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📅</div>
+                <span class="sidebar-brand">Planificateur</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Tableau de bord</span>
+                    </a>
+                    <a href="activites.html" class="nav-item">
+                        <span class="nav-icon">📌</span>
+                        <span class="nav-label">Activités</span>
+                    </a>
+                    <a href="contraintes.html" class="nav-item">
+                        <span class="nav-icon">⏰</span>
+                        <span class="nav-label">Contraintes</span>
+                    </a>
+                    <a href="conflits.html" class="nav-item">
+                        <span class="nav-icon">⚠️</span>
+                        <span class="nav-label">Conflits</span>
+                    </a>
+                    <a href="calendrier.html" class="nav-item">
+                        <span class="nav-icon">📆</span>
+                        <span class="nav-label">Calendrier</span>
+                    </a>
+                    <a href="statistiques.html" class="nav-item active">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Statistiques</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Paramètres</div>
+                    <a href="profil.html" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-label">Mon profil</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="Utils.toggleTheme(); return false;">
+                        <span class="nav-icon">🌓</span>
+                        <span class="nav-label">Thème</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilisateur</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-full mt-md" onclick="Auth.logout()">Déconnexion</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="navbar">
+                <div>
+                    <h1 class="navbar-title">📈 Mes Statistiques</h1>
+                    <p class="text-muted">📅 Semaine en cours (du lundi à aujourd'hui)</p>
+                </div>
+                <button class="btn btn-primary" onclick="loadStatistiques()">
+                    🔄 Actualiser
+                </button>
+            </div>
+
+            <!-- Scores Principaux -->
+            <div class="stat-grid mt-xl">
+                <div class="stat-card-big">
+                    <div class="stat-icon">💪</div>
+                    <div class="stat-value-big" id="scoreProductivite">--</div>
+                    <div class="stat-label-big">Score de Productivité</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressProductivite" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card-big">
+                    <div class="stat-icon">😴</div>
+                    <div class="stat-value-big" id="scoreFatigue">--</div>
+                    <div class="stat-label-big">Score de Fatigue</div>
+                    <span class="stat-badge" id="badgeFatigue">--</span>
+                </div>
+
+                <div class="stat-card-big">
+                    <div class="stat-icon">⚖️</div>
+                    <div class="stat-value-big" id="ratioEquilibre">--</div>
+                    <div class="stat-label-big">Ratio Travail/Repos</div>
+                    <span class="stat-badge" id="badgeEquilibre">--</span>
+                </div>
+
+                <div class="stat-card-big">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value-big" id="nombreActivites">--</div>
+                    <div class="stat-label-big">Activités Planifiées</div>
+                    <p class="text-muted" id="moyenneActivites" style="margin-top: var(--space-sm);">--</p>
+                </div>
+            </div>
+
+            <!-- Temps par Type d'Activité -->
+            <div class="chart-container">
+                <h3 class="card-title">⏱️ Temps par Type d'Activité (Cette semaine)</h3>
+                <div id="tempsParTypeChart" class="mt-lg">
+                    <!-- Chart will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Détails Équilibre & Fatigue -->
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">⚖️ Équilibre Travail/Repos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex justify-between items-center mb-md">
+                            <span>Heures de Travail</span>
+                            <strong id="heuresTravail">-- h</strong>
+                        </div>
+                        <div class="flex justify-between items-center mb-md">
+                            <span>Heures de Repos</span>
+                            <strong id="heuresRepos">-- h</strong>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Niveau d'Équilibre</span>
+                            <span class="stat-badge" id="niveauEquilibre">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">😴 Analyse de Fatigue</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex justify-between items-center mb-md">
+                            <span>Score de Fatigue</span>
+                            <strong id="scoreFatigueDetail">-- / 100</strong>
+                        </div>
+                        <div class="flex justify-between items-center mb-md">
+                            <span>Travail Consécutif Max</span>
+                            <strong id="heuresConsecutives">-- h</strong>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Niveau de Fatigue</span>
+                            <span class="stat-badge" id="niveauFatigue">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productivité & Deadlines -->
+            <div class="card mt-xl">
+                <div class="card-header">
+                    <h3 class="card-title">🎯 Productivité & Deadlines</h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-3">
+                        <div class="text-center p-md">
+                            <div class="stat-value" id="tauxRespectDeadlines">--%</div>
+                            <div class="stat-label">Respect des Deadlines</div>
+                        </div>
+                        <div class="text-center p-md">
+                            <div class="stat-value" id="activitesUrgentes">--</div>
+                            <div class="stat-label">Activités Urgentes</div>
+                        </div>
+                        <div class="text-center p-md">
+                            <div class="stat-value" id="heuresTotal">-- h</div>
+                            <div class="stat-label">Heures Planifiées</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        const userId = Auth.getUserId();
+        document.getElementById('userName').textContent = Auth.getUserFullName();
+        document.getElementById('userAvatar').textContent = Auth.getUserInitials();
+
+        async function loadStatistiques() {
+            try {
+                Utils.toast('Chargement des statistiques...', 'info', 1000);
+
+                // Charger le rapport complet
+                const rapport = await Api.statistiques.getRapport(userId);
+                console.log('📊 Rapport statistiques:', rapport);
+
+                // Scores principaux
+                document.getElementById('scoreProductivite').textContent = Math.round(rapport.scoreProductivite);
+                document.getElementById('progressProductivite').style.width = rapport.scoreProductivite + '%';
+                
+                document.getElementById('scoreFatigue').textContent = Math.round(rapport.scoreFatigue);
+                document.getElementById('badgeFatigue').textContent = rapport.niveauFatigue;
+                document.getElementById('badgeFatigue').className = `stat-badge badge-${rapport.niveauFatigue.toLowerCase()}`;
+                
+                document.getElementById('ratioEquilibre').textContent = 
+                    rapport.ratioTravailRepos >= 999 ? '∞' : rapport.ratioTravailRepos.toFixed(2);
+                document.getElementById('badgeEquilibre').textContent = rapport.niveauEquilibre;
+                document.getElementById('badgeEquilibre').className = `stat-badge badge-${rapport.niveauEquilibre.toLowerCase()}`;
+                
+                document.getElementById('nombreActivites').textContent = rapport.nombreActivites;
+                document.getElementById('moyenneActivites').textContent = 
+                    `${rapport.moyenneActivitesParJour.toFixed(1)} par jour`;
+
+                // Temps par type
+                renderTempsParType(rapport.tempsParType, rapport.pourcentageParType);
+
+                // Équilibre
+                document.getElementById('heuresTravail').textContent = rapport.heuresTravail.toFixed(1) + ' h';
+                document.getElementById('heuresRepos').textContent = rapport.heuresRepos.toFixed(1) + ' h';
+                document.getElementById('niveauEquilibre').textContent = rapport.niveauEquilibre;
+                document.getElementById('niveauEquilibre').className = `stat-badge badge-${rapport.niveauEquilibre.toLowerCase()}`;
+
+                // Fatigue
+                document.getElementById('scoreFatigueDetail').textContent = 
+                    Math.round(rapport.scoreFatigue) + ' / 100';
+                document.getElementById('heuresConsecutives').textContent = 
+                    rapport.heuresTravailConsecutivesMax.toFixed(1) + ' h';
+                document.getElementById('niveauFatigue').textContent = rapport.niveauFatigue;
+                document.getElementById('niveauFatigue').className = `stat-badge badge-${rapport.niveauFatigue.toLowerCase()}`;
+
+                // Productivité
+                document.getElementById('tauxRespectDeadlines').textContent = 
+                    Math.round(rapport.tauxRespectDeadlines) + '%';
+                document.getElementById('activitesUrgentes').textContent = rapport.nombreActivitesUrgentes;
+                document.getElementById('heuresTotal').textContent = rapport.heuresPlannifieesTotal.toFixed(1) + ' h';
+
+                Utils.toast('✅ Statistiques chargées !', 'success');
+
+            } catch (error) {
+                console.error('Erreur chargement statistiques:', error);
+                Utils.toast('❌ Erreur lors du chargement', 'danger');
+            }
+        }
+
+        function renderTempsParType(tempsParType, pourcentages) {
+            const container = document.getElementById('tempsParTypeChart');
+            
+            if (!tempsParType || Object.keys(tempsParType).length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Aucune donnée disponible</p>';
+                return;
+            }
+
+            const colors = {
+                'Sport': 'sport',
+                'Etude': 'etude',
+                'Loisirs': 'loisirs',
+                'Repos': 'repos',
+                'Travail': 'travail'
+            };
+
+            const icons = {
+                'Sport': '🏋️',
+                'Etude': '📚',
+                'Loisirs': '🎲',
+                'Repos': '🛌',
+                'Travail': '💼'
+            };
+
+            container.innerHTML = Object.entries(tempsParType)
+                .sort((a, b) => b[1] - a[1])
+                .map(([type, heures]) => {
+                    const pourcent = pourcentages[type] || 0;
+                    return `
+                        <div class="chart-item">
+                            <div class="chart-label">
+                                <div class="chart-color color-${colors[type] || 'sport'}"></div>
+                                <span>${icons[type] || '📌'} ${type}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: var(--space-lg);">
+                                <strong>${heures.toFixed(1)} h</strong>
+                                <span class="text-muted">(${pourcent.toFixed(1)}%)</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        // Initial load
+        loadStatistiques();
+    </script>
+</body>
+
+</html>

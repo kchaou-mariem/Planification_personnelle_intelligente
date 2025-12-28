@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier - Planification Personnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .calendar-header {
+            background: var(--bg-secondary);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .current-month {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 250px;
+            text-align: center;
+        }
+
+        .calendar-container {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: var(--space-md);
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            padding: var(--space-md);
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .day-cell {
+            min-height: 120px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm);
+            background: var(--bg-tertiary);
+            transition: all var(--transition-normal);
+            cursor: pointer;
+        }
+
+        .day-cell:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .day-cell.other-month {
+            opacity: 0.3;
+            background: var(--bg-primary);
+        }
+
+        .day-cell.today {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .day-cell.today .day-number {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .activity-item {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            margin-bottom: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all var(--transition-fast);
+            color: white;
+            font-weight: 500;
+        }
+
+        .activity-item:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .activity-Sport { background: #3b82f6; }
+        .activity-Etude { background: #6366f1; }
+        .activity-Loisirs { background: #f59e0b; }
+        .activity-Repos { background: #22c55e; }
+        .activity-Travail { background: #8b5cf6; }
+
+        .more-activities {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .legend {
+            display: flex;
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: var(--radius-sm);
+        }
+
+        .modal-activity {
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid var(--primary);
+        }
+
+        .modal-activity h3 {
+            margin-bottom: var(--space-sm);
+            color: var(--text-primary);
+        }
+
+        .modal-activity p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-xs);
+        }
+
+        @media (max-width: 1024px) {
+            .calendar-grid {
+                gap: var(--space-sm);
+            }
+            
+            .day-cell {
+                min-height: 100px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .calendar-nav {
+                flex-direction: column;
+            }
+            
+            .nav-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .day-cell {
+                min-height: 80px;
+                padding: 4px;
+            }
+            
+            .day-header {
+                font-size: 10px;
+                padding: var(--space-xs);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📅</div>
+                <span class="sidebar-brand">Planificateur</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Tableau de bord</span>
+                    </a>
+                    <a href="activites.html" class="nav-item">
+                        <span class="nav-icon">📌</span>
+                        <span class="nav-label">Activités</span>
+                    </a>
+                    <a href="contraintes.html" class="nav-item">
+                        <span class="nav-icon">⏰</span>
+                        <span class="nav-label">Contraintes</span>
+                    </a>
+                    <a href="conflits.html" class="nav-item">
+                        <span class="nav-icon">⚠️</span>
+                        <span class="nav-label">Conflits</span>
+                    </a>
+                    <a href="calendrier.html" class="nav-item active">
+                        <span class="nav-icon">📆</span>
+                        <span class="nav-label">Calendrier</span>
+                    </a>
+                   
+  
+                    <a href="statistiques.html" class="nav-item">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Statistiques</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Paramètres</div>
+                    <a href="profil.html" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-label">Mon profil</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="Utils.toggleTheme(); return false;">
+                        <span class="nav-icon">🌓</span>
+                        <span class="nav-label">Thème</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilisateur</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-full mt-md" onclick="Auth.logout()">Déconnexion</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="navbar">
+                <h1 class="navbar-title">📆 Mon Calendrier</h1>
+            </div>
+
+            <!-- Calendar Navigation -->
+            <div class="calendar-header mt-xl">
+                <div class="calendar-nav">
+                    <button class="btn btn-secondary" onclick="previousMonth()">
+                        ◀ Précédent
+                    </button>
+                    
+                    <div class="nav-controls">
+                        <span class="current-month" id="currentMonth"></span>
+                        <button class="btn btn-primary" onclick="today()">
+                            Aujourd'hui
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="nextMonth()">
+                        Suivant ▶
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-container">
+                <div class="calendar-grid">
+                    <div class="day-header">Lun</div>
+                    <div class="day-header">Mar</div>
+                    <div class="day-header">Mer</div>
+                    <div class="day-header">Jeu</div>
+                    <div class="day-header">Ven</div>
+                    <div class="day-header">Sam</div>
+                    <div class="day-header">Dim</div>
+                </div>
+                <div class="calendar-grid" id="calendarDays"></div>
+
+                <!-- Legend -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color activity-Sport"></div>
+                        <span>Sport</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color activity-Etude"></div>
+                        <span>Étude</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color activity-Loisirs"></div>
+                        <span>Loisirs</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color activity-Repos"></div>
+                        <span>Repos</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color activity-Travail"></div>
+                        <span>Travail</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="dayModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalDate">Activités du jour</h3>
+                <button class="modal-close" onclick="Utils.closeModal('dayModal')">✕</button>
+            </div>
+            <div class="modal-body" id="modalActivities">
+                <!-- Activities will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary w-full" onclick="Utils.closeModal('dayModal')">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!Auth.requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        const userId = Auth.getUserId();
+        document.getElementById('userName').textContent = Auth.getUserFullName();
+        document.getElementById('userAvatar').textContent = Auth.getUserInitials();
+
+        let currentDate = new Date();
+        let activities = [];
+
+        // Load activities from API
+        async function loadActivities() {
+            try {
+                activities = await Api.activites.getAll(userId);
+                console.log('Activités chargées:', activities); // Debug
+                renderCalendar();
+            } catch (error) {
+                console.error('Erreur chargement activités:', error);
+                Utils.toast('Erreur lors du chargement des activités', 'danger');
+            }
+        }
+
+        // Render calendar grid
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Update month display
+            document.getElementById('currentMonth').textContent = 
+                currentDate.toLocaleDateString('fr-FR', { 
+                    month: 'long', 
+                    year: 'numeric' 
+                }).toUpperCase();
+
+            // Calculate calendar days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0);
+
+            const firstDayOfWeek = firstDay.getDay() === 0 ? 7 : firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            const daysInPrevMonth = prevLastDay.getDate();
+
+            const container = document.getElementById('calendarDays');
+            container.innerHTML = '';
+
+            // Previous month days
+            for (let i = firstDayOfWeek - 1; i > 0; i--) {
+                const day = daysInPrevMonth - i + 1;
+                const cell = createDayCell(day, month - 1, year, true);
+                container.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = createDayCell(day, month, year, false);
+                container.appendChild(cell);
+            }
+
+            // Next month days to complete the grid
+            const totalCells = container.children.length;
+            const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = createDayCell(day, month + 1, year, true);
+                container.appendChild(cell);
+            }
+        }
+
+        // Create a day cell
+        function createDayCell(day, month, year, isOtherMonth) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (isOtherMonth) cell.classList.add('other-month');
+
+            const date = new Date(year, month, day);
+            const dateStr = date.toISOString().split('T')[0];
+
+            // Check if today
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                cell.classList.add('today');
+            }
+
+            // Day number
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            cell.appendChild(dayNumber);
+
+            // Filter activities for this day
+            const dayActivities = activities.filter(a => {
+                if (!a.horaireDebut) return false;
+                const activityDate = new Date(a.horaireDebut);
+                return activityDate.toDateString() === date.toDateString();
+            });
+
+            // Display activities (max 3 visible)
+            const maxVisible = 3;
+            dayActivities.slice(0, maxVisible).forEach(activity => {
+                const activityEl = document.createElement('div');
+                activityEl.className = `activity-item activity-${activity.typeActivite}`;
+                const startTime = new Date(activity.horaireDebut).toLocaleTimeString('fr-FR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                activityEl.textContent = `${startTime} ${activity.titre}`;
+                activityEl.title = activity.titre;
+                activityEl.onclick = (e) => {
+                    e.stopPropagation();
+                    showActivityDetails(activity);
+                };
+                cell.appendChild(activityEl);
+            });
+
+            // Show "+X more" if there are more activities
+            if (dayActivities.length > maxVisible) {
+                const more = document.createElement('div');
+                more.className = 'more-activities';
+                more.textContent = `+${dayActivities.length - maxVisible} autre(s)`;
+                cell.appendChild(more);
+            }
+
+            // Click handler for day cell
+            cell.onclick = () => showDayDetails(dateStr, dayActivities);
+
+            return cell;
+        }
+
+        // Show day details in modal
+        function showDayDetails(dateStr, dayActivities) {
+            const date = new Date(dateStr);
+            document.getElementById('modalDate').textContent = 
+                date.toLocaleDateString('fr-FR', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+            const container = document.getElementById('modalActivities');
+
+            if (dayActivities.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Aucune activité ce jour</p>';
+            } else {
+                container.innerHTML = dayActivities.map(a => {
+                    const debut = new Date(a.horaireDebut).toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    const fin = new Date(a.horaireFin).toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    return `
+                    <div class="modal-activity">
+                        <h3>${a.titre}</h3>
+                        ${a.description ? `<p>${a.description}</p>` : ''}
+                        <p>
+                            <strong>🕐 Horaire :</strong> ${debut} - ${fin}<br>
+                            <strong>📌 Type :</strong> ${a.typeActivite}<br>
+                            <strong>⚡ Priorité :</strong> ${a.priorite}/5
+                        </p>
+                    </div>
+                `;
+                }).join('');
+            }
+
+            Utils.openModal('dayModal');
+        }
+
+        // Show activity details (quick view)
+        function showActivityDetails(activity) {
+            const debut = new Date(activity.horaireDebut).toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const fin = new Date(activity.horaireFin).toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            Utils.toast(`${activity.titre} - ${debut} à ${fin}`, 'info', 3000);
+        }
+
+        // Navigation functions
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function today() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        // Initial load
+        loadActivities();
+    </script>
+</body>
+
+</html>

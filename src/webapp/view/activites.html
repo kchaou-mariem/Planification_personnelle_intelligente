@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Activités - Planification Personnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    // Protéger la page - rediriger si non connecté
+    if (!Auth.requireAuth()) {
+        // La redirection est déjà faite par requireAuth()
+    }
+    
+    // Charger les infos utilisateur
+    const currentUser = Auth.getUser();
+    console.log('Utilisateur connecté:', currentUser);
+</script>
+    <style>
+        .activity-card {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-md);
+            transition: all var(--transition-fast);
+        }
+
+        .activity-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        .activity-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+
+        .activity-meta {
+            display: flex;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+            margin-top: var(--space-sm);
+        }
+
+        .activity-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .activity-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-xl);
+        }
+
+        .filter-bar .form-input,
+        .filter-bar .form-select {
+            max-width: 200px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-md);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📅</div>
+                <span class="sidebar-brand">Planificateur</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu</div>
+                    <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span
+                            class="nav-label">Tableau de bord</span></a>
+                    <a href="activites.html" class="nav-item active"><span class="nav-icon">📌</span><span
+                            class="nav-label">Activités</span></a>
+                    <a href="contraintes.html" class="nav-item"><span class="nav-icon">⏰</span><span
+                            class="nav-label">Contraintes</span></a>
+                    <a href="conflits.html" class="nav-item"><span class="nav-icon">⚠️</span><span
+                            class="nav-label">Conflits</span></a>
+                            <a href="calendrier.html" class="nav-item">
+                        <span class="nav-icon">📆</span>
+                        <span class="nav-label">Calendrier</span>
+                    </a>
+  
+                    <a href="statistiques.html" class="nav-item">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Statistiques</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Paramètres</div>
+                    <a href="profil.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Mon
+                            profil</span></a>
+                    <a href="#" class="nav-item" onclick="Utils.toggleTheme(); return false;"><span
+                            class="nav-icon">🌓</span><span class="nav-label">Thème</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilisateur</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-full mt-md" onclick="Auth.logout()">Déconnexion</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="navbar">
+                <h1 class="navbar-title">Mes Activités</h1>
+                <button class="btn btn-primary" onclick="Utils.openModal('activityModal'); resetForm();">+ Nouvelle
+                    activité</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar mt-xl">
+                <input type="text" id="searchInput" class="form-input" placeholder="🔍 Rechercher...">
+                <select id="typeFilter" class="form-select">
+                    <option value="">Tous les types</option>
+                    <option value="Sport">Sport</option>
+                    <option value="Etude">Étude</option>
+                    <option value="Loisirs">Loisirs</option>
+                    <option value="Repos">Repos</option>
+                    <option value="Travail">Travail</option>
+                </select>
+                <select id="sortBy" class="form-select">
+                    <option value="date">Trier par date</option>
+                    <option value="priority">Trier par priorité</option>
+                    <option value="title">Trier par titre</option>
+                </select>
+            </div>
+
+            <!-- Activities List -->
+            <div id="activitiesList">
+                <p class="text-center text-muted">Chargement...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Activity Modal -->
+    <div class="modal-overlay" id="activityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Nouvelle activité</h3>
+                <button class="modal-close" onclick="Utils.closeModal('activityModal')">✕</button>
+            </div>
+            <form id="activityForm">
+                <input type="hidden" name="id" id="activityId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Titre *</label>
+                        <input type="text" name="titre" id="titre" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type *</label>
+                        <select name="typeActivite" id="typeActivite" class="form-select" required>
+                            <option value="Sport">🏃 Sport</option>
+                            <option value="Etude">📚 Étude</option>
+                            <option value="Loisirs">🎮 Loisirs</option>
+                            <option value="Repos">😴 Repos</option>
+                            <option value="Travail">💼 Travail</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="description" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priorité (1-10)</label>
+                        <input type="number" name="priorite" id="priorite" class="form-input" min="1" max="10"
+                            value="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Début *</label>
+                        <input type="datetime-local" name="horaireDebut" id="horaireDebut" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fin *</label>
+                        <input type="datetime-local" name="horaireFin" id="horaireFin" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deadline</label>
+                        <input type="datetime-local" name="deadline" id="deadline" class="form-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="Utils.closeModal('activityModal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmer la suppression</h3>
+                <button class="modal-close" onclick="Utils.closeModal('deleteModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette activité ?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('deleteModal')">Annuler</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireAuth()) throw new Error('Not authenticated');
+
+        const userId = Auth.getUserId();
+        let activities = [];
+        let editingId = null;
+        let deletingId = null;
+
+        document.getElementById('userName').textContent = Auth.getUserFullName();
+        document.getElementById('userAvatar').textContent = Auth.getUserInitials();
+
+        async function loadActivities() {
+            try {
+                activities = await Api.activites.getByUser(userId) || [];
+                renderActivities();
+            } catch (error) {
+                document.getElementById('activitiesList').innerHTML = '<p class="text-center text-muted">Erreur de chargement</p>';
+            }
+        }
+
+        function renderActivities() {
+            const container = document.getElementById('activitiesList');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = activities.filter(a => {
+                const matchSearch = a.titre.toLowerCase().includes(search) || (a.description || '').toLowerCase().includes(search);
+                const matchType = !typeFilter || a.typeActivite === typeFilter;
+                return matchSearch && matchType;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortBy === 'priority') return (b.priorite || 0) - (a.priorite || 0);
+                if (sortBy === 'title') return a.titre.localeCompare(b.titre);
+                return new Date(b.horaireDebut) - new Date(a.horaireDebut);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📌</div>
+                        <h3>Aucune activité</h3>
+                        <p class="text-muted">Créez votre première activité !</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(act => {
+                const type = Utils.getActivityType(act.typeActivite);
+                const priority = Utils.getPriority(act.priorite);
+                return `
+                    <div class="activity-card">
+                        <div class="activity-icon" style="background: ${type.color}20; color: ${type.color};">
+                            ${type.icon}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${act.titre}</div>
+                            ${act.description ? `<p class="text-muted" style="font-size: 0.875rem; margin: 0;">${act.description}</p>` : ''}
+                            <div class="activity-meta">
+                                <div class="activity-meta-item">📅 ${Utils.formatDate(act.horaireDebut)}</div>
+                                <div class="activity-meta-item">⏰ ${Utils.formatTime(act.horaireDebut)} - ${Utils.formatTime(act.horaireFin)}</div>
+                                <div class="activity-meta-item">
+                                    <span class="badge badge-${priority.color}">${priority.label}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="editActivity(${act.idActivite})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(${act.idActivite})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityId').value = '';
+            document.getElementById('modalTitle').textContent = 'Nouvelle activité';
+            document.getElementById('submitBtn').textContent = 'Créer';
+        }
+
+        function editActivity(id) {
+            const act = activities.find(a => a.idActivite === id);
+            if (!act) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Modifier l\'activité';
+            document.getElementById('submitBtn').textContent = 'Enregistrer';
+            document.getElementById('activityId').value = id;
+            document.getElementById('titre').value = act.titre;
+            document.getElementById('typeActivite').value = act.typeActivite;
+            document.getElementById('description').value = act.description || '';
+            document.getElementById('priorite').value = act.priorite || 5;
+            document.getElementById('horaireDebut').value = Utils.formatForInput(act.horaireDebut);
+            document.getElementById('horaireFin').value = Utils.formatForInput(act.horaireFin);
+            document.getElementById('deadline').value = act.deadline ? Utils.formatForInput(act.deadline) : '';
+
+            Utils.openModal('activityModal');
+        }
+
+        function confirmDelete(id) {
+            deletingId = id;
+            Utils.openModal('deleteModal');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!deletingId) return;
+            try {
+                await Api.activites.delete(deletingId);
+                Utils.toast('Activité supprimée', 'success');
+                Utils.closeModal('deleteModal');
+                loadActivities();
+            } catch (error) {
+                Utils.toast('Erreur lors de la suppression', 'danger');
+            }
+        });
+
+        document.getElementById('activityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = Utils.getFormData(e.target);
+            data.idUtilisateur = userId;
+
+            try {
+                if (editingId) {
+                    await Api.activites.update(editingId, data);
+                    Utils.toast('Activité modifiée', 'success');
+                } else {
+                    await Api.activites.create(data);
+                    Utils.toast('Activité créée', 'success');
+                }
+                Utils.closeModal('activityModal');
+                resetForm();
+                loadActivities();
+            } catch (error) {
+                Utils.toast(error.message || 'Erreur', 'danger');
+            }
+        });
+
+        // Filters
+        document.getElementById('searchInput').addEventListener('input', renderActivities);
+        document.getElementById('typeFilter').addEventListener('change', renderActivities);
+        document.getElementById('sortBy').addEventListener('change', renderActivities);
+
+        loadActivities();
+    </script>
+</body>
+
+</html>

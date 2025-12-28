@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Planification Personnelle Intelligente - Organisez votre vie efficacement">
+    <title>Planification Personnelle Intelligente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+        }
+
+        .hero-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg) var(--space-xl);
+        }
+
+        .hero-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .hero-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .hero-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+        }
+
+        .hero-inner {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--space-lg);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions .btn {
+            padding: var(--space-md) var(--space-xl);
+            font-size: 1.1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            padding: var(--space-2xl);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: var(--space-xl);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn btn-secondary btn-icon theme-toggle" onclick="Utils.toggleTheme()">🌓</button>
+
+    <div class="hero">
+        <nav class="hero-nav">
+            <div class="hero-logo">
+                <div class="hero-logo-icon">📅</div>
+                <span>Planificateur</span>
+            </div>
+            <div class="flex gap-md">
+                <a href="login.html" class="btn btn-secondary">Connexion</a>
+                <a href="register.html" class="btn btn-primary">S'inscrire</a>
+            </div>
+        </nav>
+
+        <div class="hero-content">
+            <div class="hero-inner animate-slideUp">
+                <h1 class="hero-title">Planification Personnelle Intelligente</h1>
+                <p class="hero-subtitle">
+                    Organisez vos activités, gérez vos contraintes et atteignez vos objectifs
+                    avec notre outil de planification intelligent.
+                </p>
+                <div class="hero-actions">
+                    <a href="register.html" class="btn btn-primary">Commencer gratuitement</a>
+                    <a href="login.html" class="btn btn-outline">Se connecter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon">📌</div>
+            <h3 class="feature-title">Gestion des activités</h3>
+            <p class="feature-desc">Créez, modifiez et organisez vos activités quotidiennes en quelques clics.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⏰</div>
+            <h3 class="feature-title">Contraintes horaires</h3>
+            <p class="feature-desc">Définissez vos contraintes (sommeil, travail, repos) pour un planning réaliste.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚠️</div>
+            <h3 class="feature-title">Détection des conflits</h3>
+            <p class="feature-desc">Identifiez automatiquement les chevauchements et résolvez-les facilement.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3 class="feature-title">Statistiques</h3>
+            <p class="feature-desc">Visualisez votre répartition du temps et optimisez votre quotidien.</p>
+        </div>
+    </section>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (Auth.isAuthenticated()) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+
+</html>

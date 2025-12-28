@@ -132,21 +132,21 @@ public class ActiviteServiceImpl implements ActiviteService {
 
         // Créer l'activité dans la base de données
         Long idActivite = activiteDAO.ajouter(activite);
-        
+
         if (idActivite != null && idActivite > 0) {
             activite.setIdActivite(idActivite);
-            
+
             // Détecter et créer automatiquement les conflits
             List<Activite> activitesChevauchantes = activiteDAO.getActivitesChevauchantesUtilisateur(
                     activite.getIdUtilisateur(),
                     activite.getHoraireDebut(),
                     activite.getHoraireFin());
-            
+
             creerConflitsSiNecessaire(activite, activitesChevauchantes);
-            
+
             return idActivite;
         }
-        
+
         return -1L;
     }
 
@@ -158,18 +158,36 @@ public class ActiviteServiceImpl implements ActiviteService {
 
         // Modifier l'activité dans la base de données
         boolean succes = activiteDAO.modifier(activite);
-        
+
         if (succes) {
             // Détecter et créer automatiquement les conflits
             List<Activite> activitesChevauchantes = activiteDAO.getActivitesChevauchantesUtilisateur(
                     activite.getIdUtilisateur(),
                     activite.getHoraireDebut(),
                     activite.getHoraireFin());
-            
+
             creerConflitsSiNecessaire(activite, activitesChevauchantes);
         }
-        
+
         return succes;
+    }
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Modifier une activité SANS créer automatiquement de
+     * conflits.
+     * Utilisée pendant l'optimisation pour éviter de recréer des conflits à chaque
+     * modification.
+     * 
+     * @param activite L'activité à modifier
+     * @return true si la modification a réussi
+     */
+    public boolean modifierSansDetectionConflits(Activite activite) {
+        if (!validerActivite(activite)) {
+            return false;
+        }
+
+        // Modifier directement sans détecter les conflits
+        return activiteDAO.modifier(activite);
     }
 
     @Override
@@ -341,78 +359,150 @@ public class ActiviteServiceImpl implements ActiviteService {
         }
 
         double score = 0;
-        double travail = 0, repos = 0, sport = 0;
+
+        // ========== 1. SCORE DE BASE : Priorités (max 200 points) ==========
+        double scorePriorites = 0;
+        int nombreActivites = activites.size();
 
         for (Activite a : activites) {
-            // Bonus basé sur la priorité
             if (a.getPriorite() != null) {
-                score += a.getPriorite() * 10;
+                scorePriorites += a.getPriorite() * 5;
             }
+        }
 
-            // Pénalité si la deadline n'est pas respectée
-            if (a.getDeadline() != null && a.getHoraireFin() != null && 
-                a.getHoraireFin().isAfter(a.getDeadline())) {
-                score -= 30;
+        scorePriorites = Math.min(200, scorePriorites);
+        score += scorePriorites;
+
+        // ========== 2. RESPECT DES DEADLINES (max 100 points) ==========
+        int avecDeadline = 0;
+        int respectees = 0;
+
+        for (Activite a : activites) {
+            if (a.getDeadline() != null && a.getHoraireFin() != null) {
+                avecDeadline++;
+                if (!a.getHoraireFin().isAfter(a.getDeadline())) {
+                    respectees++;
+                }
             }
+        }
 
-            // Calculer la durée en minutes
+        if (avecDeadline > 0) {
+            double tauxRespect = (double) respectees / avecDeadline;
+            score += tauxRespect * 100;
+        } else {
+            score += 50;
+        }
+
+        // ========== 3. ÉQUILIBRE TRAVAIL/REPOS (max 100 points) ==========
+        double travail = 0, repos = 0;
+
+        for (Activite a : activites) {
             if (a.getHoraireDebut() != null && a.getHoraireFin() != null) {
                 long dureeMinutes = java.time.Duration.between(
-                    a.getHoraireDebut(), 
-                    a.getHoraireFin()
-                ).toMinutes();
+                        a.getHoraireDebut(),
+                        a.getHoraireFin()).toMinutes();
 
-                // Accumuler les durées par type d'activité
                 if (a.getTypeActivite() != null) {
                     switch (a.getTypeActivite()) {
                         case Travail:
+                        case Etude:
+                        case Sport:
+                        case Loisirs:
                             travail += dureeMinutes;
                             break;
                         case Repos:
                             repos += dureeMinutes;
                             break;
-                        case Sport:
-                            sport += dureeMinutes;
-                            break;
                         default:
                             break;
-                    }
-                }
-
-                // Pénalité pour les activités en dehors des heures normales (22h-7h)
-                if (a.getHoraireDebut() != null) {
-                    int heure = a.getHoraireDebut().getHour();
-                    if (heure >= 22 || heure < 7) {
-                        score -= 15;
                     }
                 }
             }
         }
 
-        // Calculer le score de fatigue (plus de travail et sport = plus de fatigue)
-        double fatigue = travail - repos + 0.5 * sport;
-        score -= fatigue / 60;
+        double heuresTravail = travail / 60.0;
+        double heuresRepos = repos / 60.0;
 
-        return score;
+        if (heuresRepos > 0) {
+            double ratio = heuresTravail / heuresRepos;
+
+            if (ratio >= 2.0 && ratio <= 3.0) {
+                score += 100;
+            } else if (ratio >= 1.5 && ratio <= 4.0) {
+                score += 75;
+            } else if (ratio >= 1.0 && ratio <= 6.0) {
+                score += 50;
+            } else {
+                score += 20;
+            }
+        } else if (heuresTravail > 0) {
+            score += 0;
+        } else {
+            score += 50;
+        }
+
+        // ========== 4. HORAIRES APPROPRIÉS (max 50 points) ==========
+        int activitesBienPlacees = 0;
+
+        for (Activite a : activites) {
+            if (a.getHoraireDebut() != null) {
+                int heure = a.getHoraireDebut().getHour();
+
+                if (heure >= 7 && heure < 22) {
+                    activitesBienPlacees++;
+                }
+            }
+        }
+
+        if (nombreActivites > 0) {
+            double pourcentageBienPlacees = (double) activitesBienPlacees / nombreActivites;
+            score += pourcentageBienPlacees * 50;
+        }
+
+        // ========== 5. COMPACITÉ (max 50 points) ==========
+        if (nombreActivites >= 2) {
+            List<Activite> triees = new ArrayList<>(activites);
+            triees.sort((a1, a2) -> {
+                if (a1.getHoraireDebut() == null)
+                    return 1;
+                if (a2.getHoraireDebut() == null)
+                    return -1;
+                return a1.getHoraireDebut().compareTo(a2.getHoraireDebut());
+            });
+
+            int espacesCompacts = 0;
+
+            for (int i = 0; i < triees.size() - 1; i++) {
+                Activite actuelle = triees.get(i);
+                Activite suivante = triees.get(i + 1);
+
+                if (actuelle.getHoraireFin() != null && suivante.getHoraireDebut() != null) {
+                    long ecartMinutes = java.time.Duration.between(
+                            actuelle.getHoraireFin(),
+                            suivante.getHoraireDebut()).toMinutes();
+
+                    if (ecartMinutes >= 0 && ecartMinutes <= 120) {
+                        espacesCompacts++;
+                    }
+                }
+            }
+
+            double pourcentageCompact = (double) espacesCompacts / (nombreActivites - 1);
+            score += pourcentageCompact * 50;
+        }
+
+        return Math.round(score * 100.0) / 100.0;
     }
 
-    /**
-     * Calculer le score d'un planning en incluant des pénalités pour les conflits.
-     * Cela permet à l'algorithme d'optimisation d'explorer les plannings invalides
-     * et de converger progressivement vers des solutions valides.
-     * 
-     * @param activites La liste des activités du planning
-     * @param contraintes La liste des contraintes à respecter
-     * @return Le score du planning (avec pénalités pour conflits)
-     */
-    private double calculerScoreAvecConflits(List<Activite> activites, List<Contrainte> contraintes) {
-        // Commencer avec le score de base
+    @Override
+    public double calculerScoreAvecConflits(List<Activite> activites, List<Contrainte> contraintes) {
         double score = calculerScorePlanning(activites);
-        
+
         if (activites == null || contraintes == null) {
             return score;
         }
-        
+
+        // ✅ CALCUL BASÉ SUR LES VRAIS CHEVAUCHEMENTS (pas les conflits en base)
         // Pénalité pour les chevauchements entre activités (-100 par chevauchement)
         for (int i = 0; i < activites.size(); i++) {
             for (int j = i + 1; j < activites.size(); j++) {
@@ -421,7 +511,7 @@ public class ActiviteServiceImpl implements ActiviteService {
                 }
             }
         }
-        
+
         // Pénalité pour les violations de contraintes (-80 par violation)
         for (Activite activite : activites) {
             for (Contrainte contrainte : contraintes) {
@@ -434,7 +524,7 @@ public class ActiviteServiceImpl implements ActiviteService {
                 }
             }
         }
-        
+
         return score;
     }
 
@@ -444,7 +534,6 @@ public class ActiviteServiceImpl implements ActiviteService {
             return new ArrayList<>();
         }
 
-        // Créer une copie profonde de la liste
         List<Activite> copie = new ArrayList<>();
         for (Activite a : activites) {
             Activite clone = new Activite();
@@ -460,25 +549,24 @@ public class ActiviteServiceImpl implements ActiviteService {
             copie.add(clone);
         }
 
-        // Sélectionner une activité aléatoire
         java.util.Random random = new java.util.Random();
         Activite activiteAMuter = copie.get(random.nextInt(copie.size()));
 
-        // Décalage aléatoire : -120, -60, -30, +30, +60 ou +120 minutes
-        int[] decalagesPossibles = {-120, -60, -30, 30, 60, 120};
+        int[] decalagesPossibles = { -240, -120, -60, -30, 30, 60, 120, 240 };
         int decalage = decalagesPossibles[random.nextInt(decalagesPossibles.length)];
 
-        // Appliquer la mutation
-        if (activiteAMuter.getHoraireDebut() != null) {
-            activiteAMuter.setHoraireDebut(
-                activiteAMuter.getHoraireDebut().plusMinutes(decalage)
-            );
-        }
-        
-        if (activiteAMuter.getHoraireFin() != null) {
-            activiteAMuter.setHoraireFin(
-                activiteAMuter.getHoraireFin().plusMinutes(decalage)
-            );
+        if (activiteAMuter.getHoraireDebut() != null && activiteAMuter.getHoraireFin() != null) {
+            long dureeMinutes = java.time.Duration.between(
+                    activiteAMuter.getHoraireDebut(),
+                    activiteAMuter.getHoraireFin()).toMinutes();
+
+            LocalDateTime nouveauDebut = activiteAMuter.getHoraireDebut().plusMinutes(decalage);
+            LocalDateTime nouvelleFin = nouveauDebut.plusMinutes(dureeMinutes);
+
+            if (nouveauDebut.getHour() >= 6 && nouvelleFin.getHour() <= 23) {
+                activiteAMuter.setHoraireDebut(nouveauDebut);
+                activiteAMuter.setHoraireFin(nouvelleFin);
+            }
         }
 
         return copie;
@@ -486,53 +574,91 @@ public class ActiviteServiceImpl implements ActiviteService {
 
     @Override
     public List<Activite> optimiserPlanning(List<Activite> activites, List<Contrainte> contraintes, int iterations) {
-        if (activites == null || contraintes == null || iterations <= 0) {
+        if (activites == null || activites.isEmpty() || contraintes == null || iterations <= 0) {
+            System.out.println("⚠️ Paramètres invalides pour l'optimisation");
             return activites;
         }
 
-        // Planning initial avec pénalités pour conflits
-        List<Activite> meilleur = activites;
+        System.out.println("🚀 Début optimisation : " + activites.size() + " activités, " +
+                contraintes.size() + " contraintes, " + iterations + " itérations");
+
+        List<Activite> meilleur = copierPlanning(activites);
         double meilleurScore = calculerScoreAvecConflits(meilleur, contraintes);
-        
+
+        List<Activite> courant = copierPlanning(activites);
+        double scoreCourant = meilleurScore;
+
+        System.out.println("📊 Score initial: " + meilleurScore);
+        System.out.println("✅ Planning initial valide: " + planningValide(meilleur, contraintes));
+
+        double temperature = 1000.0;
+        double tauxRefroidissement = 0.995;
+
         int ameliorations = 0;
-        int tentativesReussies = 0;
+        int acceptations = 0;
+        java.util.Random random = new java.util.Random();
 
-        // Itérations d'optimisation
         for (int i = 0; i < iterations; i++) {
-            // Générer une variante par mutation
-            List<Activite> candidat = muterPlanning(meilleur);
+            List<Activite> voisin = muterPlanning(courant);
+            double scoreVoisin = calculerScoreAvecConflits(voisin, contraintes);
 
-            // Calculer le score avec pénalités de conflits
-            double scoreCandidat = calculerScoreAvecConflits(candidat, contraintes);
-            
-            // Conserver si meilleur (même invalide si score supérieur)
-            if (scoreCandidat > meilleurScore) {
-                meilleur = candidat;
-                meilleurScore = scoreCandidat;
-                ameliorations++;
-                
-                // Vérifier si on a atteint un planning valide
-                if (planningValide(candidat, contraintes)) {
-                    tentativesReussies++;
+            double delta = scoreVoisin - scoreCourant;
+
+            boolean accepter = false;
+
+            if (delta > 0) {
+                accepter = true;
+            } else {
+                double probabilite = Math.exp(delta / temperature);
+                if (random.nextDouble() < probabilite) {
+                    accepter = true;
                 }
             }
+
+            if (accepter) {
+                courant = voisin;
+                scoreCourant = scoreVoisin;
+                acceptations++;
+
+                if (scoreVoisin > meilleurScore) {
+                    meilleur = voisin;
+                    meilleurScore = scoreVoisin;
+                    ameliorations++;
+
+                    if (ameliorations % 10 == 0) {
+                        System.out.println("✨ Amélioration #" + ameliorations +
+                                " - Score: " + String.format("%.2f", meilleurScore) +
+                                " - Valide: " + planningValide(meilleur, contraintes));
+                    }
+                }
+            }
+
+            temperature *= tauxRefroidissement;
+
+            if ((i + 1) % 100 == 0) {
+                System.out.println("🔄 Itération " + (i + 1) + "/" + iterations +
+                        " - T: " + String.format("%.2f", temperature) +
+                        " - Score: " + String.format("%.2f", scoreCourant) +
+                        " - Acceptations: " + acceptations);
+            }
         }
-        
-        System.out.println("Debug: " + ameliorations + " améliorations trouvées sur " + iterations + " itérations");
-        if (tentativesReussies > 0) {
-            System.out.println("Debug: " + tentativesReussies + " plannings valides trouvés");
-        }
+
+        System.out.println("✅ Optimisation terminée!");
+        System.out.println("📊 Score final: " + meilleurScore + " (initial: " +
+                calculerScoreAvecConflits(activites, contraintes) + ")");
+        System.out.println("🎯 Améliorations: " + ameliorations);
+        System.out.println("✓ Planning final valide: " + planningValide(meilleur, contraintes));
+
+        int conflitsChevauchement = compterChevauchements(meilleur);
+        int conflitsContraintes = compterViolationsContraintes(meilleur, contraintes);
+        System.out.println("⚠️ Chevauchements restants: " + conflitsChevauchement);
+        System.out.println("⚠️ Violations de contraintes restantes: " + conflitsContraintes);
 
         return meilleur;
     }
 
     // ========== MÉTHODES PRIVÉES ==========
 
-    /**
-     * Créer automatiquement des conflits pour les violations de contraintes et chevauchements
-     * @param activite L'activité qui viole les contraintes
-     * @param activitesChevauchantes Liste des activités qui se chevauchent
-     */
     private void creerConflitsSiNecessaire(Activite activite, List<Activite> activitesChevauchantes) {
         if (activite == null) {
             return;
@@ -541,19 +667,17 @@ public class ActiviteServiceImpl implements ActiviteService {
         // 1. Vérifier les violations de contraintes
         List<Contrainte> contraintesUtilisateur = contrainteDAO.getContraintesActivesByUtilisateur(
                 activite.getIdUtilisateur().intValue());
-        
+
         LocalTime heureDebut = activite.getHoraireDebut().toLocalTime();
         LocalTime heureFin = activite.getHoraireFin().toLocalTime();
-        
+
         for (Contrainte contrainte : contraintesUtilisateur) {
             if (estEnConflitAvecContrainte(contrainte, heureDebut, heureFin, activite.getHoraireDebut())) {
-                // Créer un conflit de violation de contrainte
                 Conflit conflit = new Conflit(
-                    null,
-                    LocalDateTime.now(),
-                    TypeConflit.VIOLATION_DE_CONTRAINTE,
-                    false
-                );
+                        null,
+                        LocalDateTime.now(),
+                        TypeConflit.VIOLATION_DE_CONTRAINTE,
+                        false);
                 Long idConflit = conflitDAO.ajouter(conflit);
                 if (idConflit != null && idConflit > 0) {
                     conflitDAO.lierActiviteAuConflit(idConflit, activite.getIdActivite());
@@ -566,20 +690,18 @@ public class ActiviteServiceImpl implements ActiviteService {
         if (activitesChevauchantes != null && !activitesChevauchantes.isEmpty()) {
             for (Activite autre : activitesChevauchantes) {
                 if (!autre.getIdActivite().equals(activite.getIdActivite())) {
-                    // Vérifier si un conflit n'existe pas déjà entre ces deux activités
                     if (!conflitDejaExistePourActivites(activite.getIdActivite(), autre.getIdActivite())) {
                         Conflit conflit = new Conflit(
-                            null,
-                            LocalDateTime.now(),
-                            TypeConflit.CHEVAUCHEMENT_DES_ACTIVITES,
-                            false
-                        );
+                                null,
+                                LocalDateTime.now(),
+                                TypeConflit.CHEVAUCHEMENT_DES_ACTIVITES,
+                                false);
                         Long idConflit = conflitDAO.ajouter(conflit);
                         if (idConflit != null && idConflit > 0) {
                             conflitDAO.lierActiviteAuConflit(idConflit, activite.getIdActivite());
                             conflitDAO.lierActiviteAuConflit(idConflit, autre.getIdActivite());
-                            System.out.println("⚠️ Conflit créé: Chevauchement entre '" + activite.getTitre() + 
-                                             "' et '" + autre.getTitre() + "'");
+                            System.out.println("⚠️ Conflit créé: Chevauchement entre '" + activite.getTitre() +
+                                    "' et '" + autre.getTitre() + "'");
                         }
                     }
                 }
@@ -587,29 +709,22 @@ public class ActiviteServiceImpl implements ActiviteService {
         }
     }
 
-    /**
-     * Vérifier si deux activités se chevauchent temporellement
-     */
     private boolean activitesChevauchent(Activite a1, Activite a2) {
         if (a1 == null || a2 == null) {
             return false;
         }
-        
+
         if (a1.getHoraireDebut() == null || a1.getHoraireFin() == null ||
-            a2.getHoraireDebut() == null || a2.getHoraireFin() == null) {
+                a2.getHoraireDebut() == null || a2.getHoraireFin() == null) {
             return false;
         }
 
         return a1.getHoraireDebut().isBefore(a2.getHoraireFin()) &&
-               a1.getHoraireFin().isAfter(a2.getHoraireDebut());
+                a1.getHoraireFin().isAfter(a2.getHoraireDebut());
     }
 
-    /**
-     * Vérifier si une activité viole une contrainte
-     * Logique inspirée de la méthode violeContrainte
-     */
-    private boolean estEnConflitAvecContrainte(Contrainte contrainte, LocalTime heureDebut, 
-                                                LocalTime heureFin, LocalDateTime dateActivite) {
+    private boolean estEnConflitAvecContrainte(Contrainte contrainte, LocalTime heureDebut,
+            LocalTime heureFin, LocalDateTime dateActivite) {
         if (contrainte == null || heureDebut == null || heureFin == null || dateActivite == null) {
             return false;
         }
@@ -621,29 +736,22 @@ public class ActiviteServiceImpl implements ActiviteService {
             return false;
         }
 
-        // Extraire la date et le jour de la semaine de l'activité
         LocalDate dateAct = dateActivite.toLocalDate();
         java.time.DayOfWeek jour = dateActivite.getDayOfWeek();
 
-        // Si la contrainte est répétitive, vérifier que le jour correspond
         if (contrainte.isRepetitif()) {
             if (contrainte.getJoursSemaine() == null || !contrainte.getJoursSemaine().contains(jour)) {
-                return false; // Le jour ne correspond pas, pas de violation
+                return false;
             }
         } else {
-            // Si la contrainte n'est pas répétitive, vérifier que la date correspond
             if (contrainte.getDatesSpecifiques() == null || !contrainte.getDatesSpecifiques().contains(dateAct)) {
-                return false; // La date ne correspond pas, pas de violation
+                return false;
             }
         }
 
-        // Vérifier le chevauchement temporel (l'activité viole la contrainte si les horaires se chevauchent)
         return heureDebut.isBefore(finContrainte) && heureFin.isAfter(debContrainte);
     }
 
-    /**
-     * Vérifier si un conflit existe déjà entre deux activités
-     */
     private boolean conflitDejaExistePourActivites(Long idActivite1, Long idActivite2) {
         List<Conflit> conflits1 = conflitDAO.getByActivite(idActivite1);
         for (Conflit conflit : conflits1) {
@@ -690,5 +798,57 @@ public class ActiviteServiceImpl implements ActiviteService {
         }
 
         return true;
+    }
+
+    private int compterChevauchements(List<Activite> activites) {
+        int count = 0;
+        for (int i = 0; i < activites.size(); i++) {
+            for (int j = i + 1; j < activites.size(); j++) {
+                if (activitesChevauchent(activites.get(i), activites.get(j))) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int compterViolationsContraintes(List<Activite> activites, List<Contrainte> contraintes) {
+        if (contraintes == null)
+            return 0;
+
+        int count = 0;
+        for (Activite activite : activites) {
+            if (activite.getHoraireDebut() == null || activite.getHoraireFin() == null) {
+                continue;
+            }
+            for (Contrainte contrainte : contraintes) {
+                if (estEnConflitAvecContrainte(
+                        contrainte,
+                        activite.getHoraireDebut().toLocalTime(),
+                        activite.getHoraireFin().toLocalTime(),
+                        activite.getHoraireDebut())) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private List<Activite> copierPlanning(List<Activite> activites) {
+        List<Activite> copie = new ArrayList<>();
+        for (Activite a : activites) {
+            Activite clone = new Activite();
+            clone.setIdActivite(a.getIdActivite());
+            clone.setTitre(a.getTitre());
+            clone.setTypeActivite(a.getTypeActivite());
+            clone.setPriorite(a.getPriorite());
+            clone.setHoraireDebut(a.getHoraireDebut());
+            clone.setHoraireFin(a.getHoraireFin());
+            clone.setDeadline(a.getDeadline());
+            clone.setDescription(a.getDescription());
+            clone.setIdUtilisateur(a.getIdUtilisateur());
+            copie.add(clone);
+        }
+        return copie;
     }
 }

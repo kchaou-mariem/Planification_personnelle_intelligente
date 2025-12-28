@@ -46,10 +46,11 @@ const utilisateurs = {
             body: JSON.stringify({ email, motdepasse })
         }),
 
-    register: (nom, prenom, email, motdepasse) => 
+    // ✅ CORRIGÉ : Accepte UN OBJET au lieu de paramètres séparés
+    register: (userData) => 
         request(`${API_BASE_URL}/utilisateurs/register`, {
             method: 'POST',
-            body: JSON.stringify({ nom, prenom, email, motdepasse })
+            body: JSON.stringify(userData)
         }),
 
     getById: (id) => 
@@ -66,7 +67,6 @@ const utilisateurs = {
             method: 'DELETE'
         })
 };
-
 /**
  * API Activités avec optimisation
  */

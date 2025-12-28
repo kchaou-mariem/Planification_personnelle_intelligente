@@ -20,7 +20,7 @@ import java.io.PrintWriter;
 public class UtilisateurController extends HttpServlet {
 
     private final UtilisateurService utilisateurService;
-    private final Gson gson = GsonConfig.createGson(); // ✅ ICI
+    private final Gson gson = GsonConfig.createGson();
 
     public UtilisateurController() {
         this.utilisateurService = new UtilisateurServiceImpl();
@@ -46,27 +46,51 @@ public class UtilisateurController extends HttpServlet {
             JsonObject response = new JsonObject();
 
             if ("/register".equals(pathInfo)) {
+                // 🔍 DEBUG : Afficher le JSON reçu
+                System.out.println("📥 JSON reçu pour inscription: " + body);
+                System.out.println("📋 Champs disponibles: " + json.keySet());
+                
+                // Vérifier chaque champ
+                for (String key : json.keySet()) {
+                    System.out.println("  - " + key + " = " + json.get(key) + " (type: " + json.get(key).getClass().getSimpleName() + ")");
+                }
+
                 // Inscription
                 Utilisateur user = new Utilisateur();
-                user.setNom(getJsonString(json, "nom"));
-                user.setPrenom(getJsonString(json, "prenom"));
-                user.setEmail(getJsonString(json, "email"));
-                user.set_mot_de_passe(getJsonString(json, "motdepasse"));
+                
+                // ✅ Extraire les champs avec gestion d'erreur
+                try {
+                    user.setNom(getJsonString(json, "nom"));
+                    user.setPrenom(getJsonString(json, "prenom"));
+                    user.setEmail(getJsonString(json, "email"));
+                    user.set_mot_de_passe(getJsonString(json, "motdepasse"));
 
-                if (json.has("age") && !json.get("age").isJsonNull()) {
-                    user.setAge(json.get("age").getAsInt());
+                    if (json.has("age") && !json.get("age").isJsonNull()) {
+                        user.setAge(json.get("age").getAsInt());
+                    }
+                    user.setGenre(getJsonString(json, "genre"));
+                    user.setPoste(getJsonString(json, "poste"));
+                } catch (Exception e) {
+                    System.err.println("❌ Erreur lors de l'extraction des champs: " + e.getMessage());
+                    e.printStackTrace();
+                    
+                    response.addProperty("succes", false);
+                    response.addProperty("message", "Format de données invalide: " + e.getMessage());
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(gson.toJson(response));
+                    return;
                 }
-                user.setGenre(getJsonString(json, "genre"));
-                user.setPoste(getJsonString(json, "poste"));
 
                 boolean success = utilisateurService.creerUtilisateur(user);
 
                 if (success) {
+                    System.out.println("✅ Utilisateur créé: " + user.getEmail());
                     response.addProperty("succes", true);
                     response.addProperty("message", "Inscription réussie");
                     response.add("utilisateur", userToJson(user));
                     resp.setStatus(HttpServletResponse.SC_CREATED);
                 } else {
+                    System.out.println("❌ Échec de création pour: " + user.getEmail());
                     response.addProperty("succes", false);
                     response.addProperty("message", "Erreur lors de l'inscription");
                     resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -241,8 +265,18 @@ public class UtilisateurController extends HttpServlet {
         return sb.toString();
     }
 
+    /**
+     * ✅ Méthode améliorée pour extraire les strings du JSON
+     * Gère les cas où le champ est un objet ou un tableau
+     */
     private String getJsonString(JsonObject json, String key) {
         if (json.has(key) && !json.get(key).isJsonNull()) {
+            // Vérifier si c'est un objet ou un tableau
+            if (json.get(key).isJsonObject() || json.get(key).isJsonArray()) {
+                System.err.println("⚠️ Le champ '" + key + "' est un objet/tableau, pas une string !");
+                System.err.println("   Valeur reçue: " + json.get(key));
+                throw new IllegalArgumentException("Le champ '" + key + "' doit être une chaîne de caractères, pas un objet/tableau");
+            }
             return json.get(key).getAsString();
         }
         return null;

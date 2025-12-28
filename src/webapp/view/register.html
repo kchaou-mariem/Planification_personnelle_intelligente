@@ -212,79 +212,90 @@
     <script>
         Auth.redirectIfAuthenticated();
 
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // ✅ REMPLACER CETTE PARTIE dans register.html (lignes 230-280)
 
-            const form = e.target;
-            const formAlert = document.getElementById('form-alert');
-            const submitBtn = document.getElementById('submitBtn');
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-            Utils.clearFormErrors(form);
-            formAlert.classList.add('hidden');
+    const form = e.target;
+    const formAlert = document.getElementById('form-alert');
+    const submitBtn = document.getElementById('submitBtn');
 
-            // Get values
-            const data = Utils.getFormData(form);
+    Utils.clearFormErrors(form);
+    formAlert.classList.add('hidden');
 
-            // Validation
-            if (!data.prenom.trim()) {
-                Utils.showFormError(document.getElementById('prenom'), 'Prénom requis');
-                return;
-            }
+    // ✅ CORRECTION : Extraire les données manuellement
+    const data = {
+        prenom: document.getElementById('prenom').value,
+        nom: document.getElementById('nom').value,
+        email: document.getElementById('email').value,
+        age: document.getElementById('age').value,
+        genre: document.getElementById('genre').value,
+        poste: document.getElementById('poste').value,
+        motdepasse: document.getElementById('motdepasse').value,
+        confirmer: document.getElementById('confirmer').value
+    };
 
-            if (!data.nom.trim()) {
-                Utils.showFormError(document.getElementById('nom'), 'Nom requis');
-                return;
-            }
+    // Validation
+    if (!data.prenom.trim()) {
+        Utils.showFormError(document.getElementById('prenom'), 'Prénom requis');
+        return;
+    }
 
-            if (!Utils.isValidEmail(data.email)) {
-                Utils.showFormError(document.getElementById('email'), 'Email invalide');
-                return;
-            }
+    if (!data.nom.trim()) {
+        Utils.showFormError(document.getElementById('nom'), 'Nom requis');
+        return;
+    }
 
-            if (data.motdepasse.length < 6) {
-                Utils.showFormError(document.getElementById('motdepasse'), 'Minimum 6 caractères');
-                return;
-            }
+    if (!Utils.isValidEmail(data.email)) {
+        Utils.showFormError(document.getElementById('email'), 'Email invalide');
+        return;
+    }
 
-            if (data.motdepasse !== data.confirmer) {
-                Utils.showFormError(document.getElementById('confirmer'), 'Les mots de passe ne correspondent pas');
-                return;
-            }
+    if (data.motdepasse.length < 6) {
+        Utils.showFormError(document.getElementById('motdepasse'), 'Minimum 6 caractères');
+        return;
+    }
 
-            // Submit
-            submitBtn.disabled = true;
-            document.getElementById('btnText').classList.add('hidden');
-            document.getElementById('btnLoader').classList.remove('hidden');
+    if (data.motdepasse !== data.confirmer) {
+        Utils.showFormError(document.getElementById('confirmer'), 'Les mots de passe ne correspondent pas');
+        return;
+    }
 
-            try {
-                const result = await Auth.register({
-                    nom: data.nom.trim(),
-                    prenom: data.prenom.trim(),
-                    email: data.email.trim(),
-                    age: data.age ? parseInt(data.age) : null,
-                    genre: data.genre || null,
-                    poste: data.poste.trim() || null,
-                    motdepasse: data.motdepasse
-                });
+    // Submit
+    submitBtn.disabled = true;
+    document.getElementById('btnText').classList.add('hidden');
+    document.getElementById('btnLoader').classList.remove('hidden');
 
-                if (result.success) {
-                    Utils.toast('Compte créé avec succès !', 'success');
-                    setTimeout(() => window.location.href = 'dashboard.html', 500);
-                } else {
-                    formAlert.className = 'alert alert-danger';
-                    formAlert.textContent = result.message;
-                    formAlert.classList.remove('hidden');
-                }
-            } catch (error) {
-                formAlert.className = 'alert alert-danger';
-                formAlert.textContent = 'Erreur lors de l\'inscription';
-                formAlert.classList.remove('hidden');
-            } finally {
-                submitBtn.disabled = false;
-                document.getElementById('btnText').classList.remove('hidden');
-                document.getElementById('btnLoader').classList.add('hidden');
-            }
+    try {
+        const result = await Auth.register({
+            nom: data.nom.trim(),
+            prenom: data.prenom.trim(),
+            email: data.email.trim(),
+            age: data.age ? parseInt(data.age) : null,
+            genre: data.genre || null,
+            poste: data.poste.trim() || null,
+            motdepasse: data.motdepasse
         });
+
+        if (result.success) {
+            Utils.toast('Compte créé avec succès !', 'success');
+            setTimeout(() => window.location.href = 'dashboard.html', 500);
+        } else {
+            formAlert.className = 'alert alert-danger';
+            formAlert.textContent = result.message;
+            formAlert.classList.remove('hidden');
+        }
+    } catch (error) {
+        formAlert.className = 'alert alert-danger';
+        formAlert.textContent = 'Erreur lors de l\'inscription';
+        formAlert.classList.remove('hidden');
+    } finally {
+        submitBtn.disabled = false;
+        document.getElementById('btnText').classList.remove('hidden');
+        document.getElementById('btnLoader').classList.add('hidden');
+    }
+});
     </script>
 </body>
 

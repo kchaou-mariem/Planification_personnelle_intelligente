@@ -9,7 +9,7 @@ const statistiques = {
  * Planification Personnelle Intelligente
  */
 
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8083/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8085/api';
 
 /**
  * Fonction générique pour les requêtes HTTP

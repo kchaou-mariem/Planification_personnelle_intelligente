@@ -68,6 +68,7 @@
             background: var(--bg-tertiary);
             transition: all var(--transition-normal);
             cursor: pointer;
+            position: relative;
         }
 
         .day-cell:hover {
@@ -85,6 +86,10 @@
             border-color: var(--primary);
             background: rgba(99, 102, 241, 0.1);
             box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .day-cell.has-contrainte {
+            /* SUPPRIMÉ: border-left: 3px solid #ef4444; */
         }
 
         .day-number {
@@ -123,6 +128,29 @@
         .activity-Loisirs { background: #f59e0b; }
         .activity-Repos { background: #22c55e; }
         .activity-Travail { background: #8b5cf6; }
+
+        .contrainte-badge {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            margin-bottom: 4px;
+            background: #f0f9ff; /* Bleu clair au lieu de rouge */
+            color: #0369a1; /* Bleu foncé au lieu de rouge */
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            /* SUPPRIMÉ: border-left: 3px solid #ef4444; */
+            border: 1px solid #bae6fd; /* Bordure bleue claire */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .contrainte-badge:hover {
+            background: #e0f2fe; /* Bleu un peu plus foncé au survol */
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
 
         .more-activities {
             font-size: var(--font-size-xs);
@@ -174,6 +202,19 @@
             margin-bottom: var(--space-xs);
         }
 
+        .modal-contrainte {
+            padding: var(--space-md);
+            background: rgba(2, 132, 199, 0.1); /* Bleu au lieu de rouge */
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid #0284c7; /* Bleu au lieu de rouge */
+        }
+
+        .modal-contrainte h3 {
+            margin-bottom: var(--space-sm);
+            color: #0284c7; /* Bleu au lieu de rouge */
+        }
+
         @media (max-width: 1024px) {
             .calendar-grid {
                 gap: var(--space-sm);
@@ -209,7 +250,6 @@
 
 <body>
     <div class="page-wrapper">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">📅</div>
@@ -239,8 +279,6 @@
                         <span class="nav-icon">📆</span>
                         <span class="nav-label">Calendrier</span>
                     </a>
-                   
-  
                     <a href="statistiques.html" class="nav-item">
                         <span class="nav-icon">📈</span>
                         <span class="nav-label">Statistiques</span>
@@ -271,14 +309,11 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
             <div class="navbar">
                 <h1 class="navbar-title">📆 Mon Calendrier</h1>
             </div>
 
-            <!-- Calendar Navigation -->
             <div class="calendar-header mt-xl">
                 <div class="calendar-nav">
                     <button class="btn btn-secondary" onclick="previousMonth()">
@@ -298,7 +333,6 @@
                 </div>
             </div>
 
-            <!-- Calendar Grid -->
             <div class="calendar-container">
                 <div class="calendar-grid">
                     <div class="day-header">Lun</div>
@@ -311,7 +345,6 @@
                 </div>
                 <div class="calendar-grid" id="calendarDays"></div>
 
-                <!-- Legend -->
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-color activity-Sport"></div>
@@ -333,21 +366,22 @@
                         <div class="legend-color activity-Travail"></div>
                         <span>Travail</span>
                     </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f0f9ff; border: 1px solid #bae6fd;"></div>
+                        <span>Contrainte</span>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal -->
     <div class="modal-overlay" id="dayModal">
         <div class="modal">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalDate">Activités du jour</h3>
+                <h3 class="modal-title" id="modalDate">Détails du jour</h3>
                 <button class="modal-close" onclick="Utils.closeModal('dayModal')">✕</button>
             </div>
-            <div class="modal-body" id="modalActivities">
-                <!-- Activities will be rendered here -->
-            </div>
+            <div class="modal-body" id="modalContent"></div>
             <div class="modal-footer">
                 <button class="btn btn-secondary w-full" onclick="Utils.closeModal('dayModal')">
                     Fermer
@@ -360,10 +394,7 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Check authentication
-        if (!Auth.requireAuth()) {
-            throw new Error('Not authenticated');
-        }
+        if (!Auth.requireAuth()) throw new Error('Not authenticated');
 
         const userId = Auth.getUserId();
         document.getElementById('userName').textContent = Auth.getUserFullName();
@@ -371,32 +402,33 @@
 
         let currentDate = new Date();
         let activities = [];
+        let userContraintes = [];
 
-        // Load activities from API
-        async function loadActivities() {
+        async function loadData() {
             try {
-                activities = await Api.activites.getAll(userId);
-                console.log('Activités chargées:', activities); // Debug
+                const [activitesData, contraintesResponse] = await Promise.all([
+                    Api.activites.getAll(userId).catch(() => []),
+                    Api.contraintes.getAll(userId).catch(() => ({ contraintes: [] }))
+                ]);
+                
+                activities = activitesData || [];
+                userContraintes = contraintesResponse.contraintes || contraintesResponse || [];
+                
+                console.log('Données chargées:', activities.length, 'activités,', userContraintes.length, 'contraintes');
                 renderCalendar();
             } catch (error) {
-                console.error('Erreur chargement activités:', error);
-                Utils.toast('Erreur lors du chargement des activités', 'danger');
+                console.error('Erreur chargement:', error);
+                renderCalendar();
             }
         }
 
-        // Render calendar grid
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // Update month display
             document.getElementById('currentMonth').textContent = 
-                currentDate.toLocaleDateString('fr-FR', { 
-                    month: 'long', 
-                    year: 'numeric' 
-                }).toUpperCase();
+                currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
 
-            // Calculate calendar days
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const prevLastDay = new Date(year, month, 0);
@@ -408,114 +440,157 @@
             const container = document.getElementById('calendarDays');
             container.innerHTML = '';
 
-            // Previous month days
             for (let i = firstDayOfWeek - 1; i > 0; i--) {
-                const day = daysInPrevMonth - i + 1;
-                const cell = createDayCell(day, month - 1, year, true);
-                container.appendChild(cell);
+                container.appendChild(createDayCell(daysInPrevMonth - i + 1, month - 1, year, true));
             }
 
-            // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
-                const cell = createDayCell(day, month, year, false);
-                container.appendChild(cell);
+                container.appendChild(createDayCell(day, month, year, false));
             }
 
-            // Next month days to complete the grid
             const totalCells = container.children.length;
-            const remainingCells = 42 - totalCells; // 6 weeks * 7 days
-            for (let day = 1; day <= remainingCells; day++) {
-                const cell = createDayCell(day, month + 1, year, true);
-                container.appendChild(cell);
+            for (let day = 1; day <= 42 - totalCells; day++) {
+                container.appendChild(createDayCell(day, month + 1, year, true));
             }
         }
 
-        // Create a day cell
+        function getContraintesForDate(date) {
+            const dayOfWeek = date.getDay();
+            const dateStr = date.toISOString().split('T')[0];
+            
+            const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            const currentDayName = dayNames[dayOfWeek];
+            
+            return userContraintes.filter(c => {
+                if (c.joursSemaine && c.joursSemaine.length > 0) {
+                    if (c.joursSemaine.includes(currentDayName)) return true;
+                }
+                
+                if (c.datesSpecifiques && c.datesSpecifiques.length > 0) {
+                    const match = c.datesSpecifiques.some(dateSpec => {
+                        const specDate = new Date(dateSpec).toISOString().split('T')[0];
+                        return specDate === dateStr;
+                    });
+                    if (match) return true;
+                }
+                
+                return false;
+            });
+        }
+
         function createDayCell(day, month, year, isOtherMonth) {
             const cell = document.createElement('div');
             cell.className = 'day-cell';
             if (isOtherMonth) cell.classList.add('other-month');
 
             const date = new Date(year, month, day);
-            const dateStr = date.toISOString().split('T')[0];
-
-            // Check if today
             const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 cell.classList.add('today');
             }
 
-            // Day number
+            const dayContraintes = getContraintesForDate(date);
+            if (dayContraintes.length > 0) {
+                cell.classList.add('has-contrainte');
+            }
+
             const dayNumber = document.createElement('div');
             dayNumber.className = 'day-number';
             dayNumber.textContent = day;
             cell.appendChild(dayNumber);
 
-            // Filter activities for this day
+            dayContraintes.slice(0, 1).forEach(contrainte => {
+                const el = document.createElement('div');
+                el.className = 'contrainte-badge';
+                el.textContent = contrainte.titre || contrainte.description || 'Contrainte';
+                el.title = contrainte.titre || contrainte.description;
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    const desc = contrainte.titre || contrainte.description || 'Contrainte';
+                    const horaire = contrainte.dateHeureDeb && contrainte.dateHeureFin 
+                        ? ` (${contrainte.dateHeureDeb.substring(0, 5)} - ${contrainte.dateHeureFin.substring(0, 5)})` 
+                        : '';
+                    Utils.toast(`${desc}${horaire}`, 'info', 3000);
+                };
+                cell.appendChild(el);
+            });
+
             const dayActivities = activities.filter(a => {
                 if (!a.horaireDebut) return false;
-                const activityDate = new Date(a.horaireDebut);
-                return activityDate.toDateString() === date.toDateString();
+                return new Date(a.horaireDebut).toDateString() === date.toDateString();
             });
 
-            // Display activities (max 3 visible)
-            const maxVisible = 3;
+            const maxVisible = dayContraintes.length > 0 ? 2 : 3;
             dayActivities.slice(0, maxVisible).forEach(activity => {
-                const activityEl = document.createElement('div');
-                activityEl.className = `activity-item activity-${activity.typeActivite}`;
+                const el = document.createElement('div');
+                el.className = `activity-item activity-${activity.typeActivite}`;
                 const startTime = new Date(activity.horaireDebut).toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                    hour: '2-digit', minute: '2-digit' 
                 });
-                activityEl.textContent = `${startTime} ${activity.titre}`;
-                activityEl.title = activity.titre;
-                activityEl.onclick = (e) => {
+                el.textContent = `${startTime} ${activity.titre}`;
+                el.title = activity.titre;
+                el.onclick = (e) => {
                     e.stopPropagation();
-                    showActivityDetails(activity);
+                    const debut = new Date(activity.horaireDebut).toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', minute: '2-digit' 
+                    });
+                    const fin = new Date(activity.horaireFin).toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', minute: '2-digit' 
+                    });
+                    Utils.toast(`${activity.titre} - ${debut} à ${fin}`, 'info', 3000);
                 };
-                cell.appendChild(activityEl);
+                cell.appendChild(el);
             });
 
-            // Show "+X more" if there are more activities
-            if (dayActivities.length > maxVisible) {
+            const totalItems = dayActivities.length + dayContraintes.length;
+            const visibleItems = Math.min(maxVisible, dayActivities.length) + Math.min(1, dayContraintes.length);
+            if (totalItems > visibleItems) {
                 const more = document.createElement('div');
                 more.className = 'more-activities';
-                more.textContent = `+${dayActivities.length - maxVisible} autre(s)`;
+                more.textContent = `+${totalItems - visibleItems} autre(s)`;
                 cell.appendChild(more);
             }
 
-            // Click handler for day cell
-            cell.onclick = () => showDayDetails(dateStr, dayActivities);
-
+            cell.onclick = () => showDayDetails(date, dayActivities, dayContraintes);
             return cell;
         }
 
-        // Show day details in modal
-        function showDayDetails(dateStr, dayActivities) {
-            const date = new Date(dateStr);
+        function showDayDetails(date, dayActivities, dayContraintes) {
             document.getElementById('modalDate').textContent = 
                 date.toLocaleDateString('fr-FR', { 
-                    weekday: 'long', 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
                 });
 
-            const container = document.getElementById('modalActivities');
+            let html = '';
 
-            if (dayActivities.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted">Aucune activité ce jour</p>';
-            } else {
-                container.innerHTML = dayActivities.map(a => {
+            if (dayContraintes.length > 0) {
+                html += '<h4 style="margin-bottom: 1rem; color: #0369a1;">Contraintes</h4>';
+                dayContraintes.forEach(c => {
+                    const heureDebut = c.dateHeureDeb ? c.dateHeureDeb.substring(0, 5) : '';
+                    const heureFin = c.dateHeureFin ? c.dateHeureFin.substring(0, 5) : '';
+                    const titre = c.titre || c.description || 'Contrainte';
+                    const type = c.type || 'Non spécifié';
+                    html += `
+                    <div class="modal-contrainte">
+                        <h3>${titre}</h3>
+                        <p>
+                            ${heureDebut && heureFin ? `<strong>🕐 Horaire :</strong> ${heureDebut} - ${heureFin}<br>` : ''}
+                            <strong>📌 Type :</strong> ${type}
+                        </p>
+                    </div>`;
+                });
+            }
+
+            if (dayActivities.length > 0) {
+                html += '<h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Activités</h4>';
+                dayActivities.forEach(a => {
                     const debut = new Date(a.horaireDebut).toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                        hour: '2-digit', minute: '2-digit' 
                     });
                     const fin = new Date(a.horaireFin).toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                        hour: '2-digit', minute: '2-digit' 
                     });
-                    return `
+                    html += `
                     <div class="modal-activity">
                         <h3>${a.titre}</h3>
                         ${a.description ? `<p>${a.description}</p>` : ''}
@@ -524,28 +599,18 @@
                             <strong>📌 Type :</strong> ${a.typeActivite}<br>
                             <strong>⚡ Priorité :</strong> ${a.priorite}/5
                         </p>
-                    </div>
-                `;
-                }).join('');
+                    </div>`;
+                });
             }
 
+            if (html === '') {
+                html = '<p class="text-center text-muted">Aucune activité ni contrainte ce jour</p>';
+            }
+
+            document.getElementById('modalContent').innerHTML = html;
             Utils.openModal('dayModal');
         }
 
-        // Show activity details (quick view)
-        function showActivityDetails(activity) {
-            const debut = new Date(activity.horaireDebut).toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            const fin = new Date(activity.horaireFin).toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            Utils.toast(`${activity.titre} - ${debut} à ${fin}`, 'info', 3000);
-        }
-
-        // Navigation functions
         function previousMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar();
@@ -561,8 +626,7 @@
             renderCalendar();
         }
 
-        // Initial load
-        loadActivities();
+        loadData();
     </script>
 </body>
 

@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
  */
 public class EmbeddedServer {
 
-    private static final int PORT = 8083;
+    private static final int PORT = 8085;
     private static final String WEBAPP_DIR = "src/webapp/view";
     private static final Gson gson = new Gson();
 
@@ -65,7 +65,7 @@ public class EmbeddedServer {
         controllers.put("activites", new ActiviteController());
         controllers.put("contraintes", new ContrainteController());
         controllers.put("conflits", new ConflitController());
-        controllers.put("statistiques", new StatistiqueController()); 
+        controllers.put("statistiques", new StatistiqueController());
         System.out.println("✅ Controllers chargés: " + controllers.size());
     }
 
@@ -561,7 +561,7 @@ class HttpExchangeRequest implements HttpServletRequest {
 
     @Override
     public int getServerPort() {
-        return 8083;
+        return 8085;
     }
 
     @Override
@@ -624,7 +624,7 @@ class HttpExchangeRequest implements HttpServletRequest {
 
     @Override
     public int getLocalPort() {
-        return 8083;
+        return 8085;
     }
 
     @Override

@@ -1,7 +1,7 @@
 // Exemple de liaison AJAX avec le backend Java
 
 function chargerActivites() {
-    fetch('http://localhost:8083/api/activites') // Adapter l'URL selon votre backend
+    fetch('http://localhost:8085/api/activites') // Adapter l'URL selon votre backend
         .then(response => response.json())
         .then(data => {
             const list = document.getElementById('activites-list');

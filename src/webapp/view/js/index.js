@@ -12,7 +12,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
 		poste: document.getElementById('reg-poste').value,
 		motdepasse: document.getElementById('reg-password').value
 	};
-	fetch('http://localhost:8083/api/utilisateurs/register', {
+	fetch('http://localhost:8085/api/utilisateurs/register', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data)
@@ -36,7 +36,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 		email: document.getElementById('login-email').value,
 		motdepasse: document.getElementById('login-password').value
 	};
-	fetch('http://localhost:8083/api/utilisateurs/login', {
+	fetch('http://localhost:8085/api/utilisateurs/login', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data)

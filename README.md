@@ -138,22 +138,55 @@ src/
 
 ```mermaid
 classDiagram
+	class Utilisateur {
+		-string nom
+		-string prenom
+		-string email
+		-int age
+		-string genre
+		-string poste
+	}
+
+	class Activite {
+		-string titre
+		-typeActivite type
+		-int duree
+		-int priorite
+		-LocalDateTime deadline
+		-LocalDateTime horaireDebut
+		-LocalDateTime horaireFin
+	}
+
 	class Contrainte {
-		-Long id
-		-String titre
-		-TypeContrainte type
-		-LocalDate heureDeb
-		-LocalDate heureFin
+		-typeContrainte type
+		-LocalTime heureDebut
+		-LocalTime heureFin
 		-boolean repetitif
-		-String jour
+		-string jour
 	}
 
 	class Conflit {
-		-Long idConflit
 		-LocalDateTime horaireDetection
-		-TypeConflit type
+		-typeConflit type
 		-boolean resolu
-		+marquerCommeResolu()
+	}
+
+	class Statistique {
+		-typeStatistique type
+		-int tpsParTypeAct
+		-double ratioTravailRepos
+		-NiveauEquilibre niveauEquilibre
+		-double scoreFatigue
+		-NiveauFatigue niveauFatigue
+	}
+
+	class TypeActivite {
+		<<enumeration>>
+		SPORT
+		ETUDE
+		LOISIRS
+		REPOS
+		TRAVAIL
 	}
 
 	class TypeContrainte {
@@ -175,19 +208,39 @@ classDiagram
 		REPOS_INSUFFISANT
 	}
 
-	class Activite
-	class Utilisateur
-	class ActiviteService
-	class ActiviteDAO
-	class ActiviteController
+	class TypeStatistique {
+		<<enumeration>>
+		HEBDOMADAIRE
+		QUOTIDIEN
+	}
 
-	Utilisateur "1" --> "*" Activite
-	Utilisateur "1" --> "*" Contrainte
-	ActiviteService --> ActiviteDAO
-	ActiviteService --> Contrainte
-	ActiviteController --> ActiviteService
+	class NiveauEquilibre {
+		<<enumeration>>
+		EXCELLENT
+		BON
+		MOYEN
+		FAIBLE
+	}
+
+	class NiveauFatigue {
+		<<enumeration>>
+		ELEVE
+		MODERE
+		FAIBLE
+	}
+
+	Utilisateur "1" --> "*" Activite : creer
+	Utilisateur "1" --> "*" Contrainte : posseder
+	Activite "1..*" --> "*" Contrainte : avoir
+	Activite "1" --> "0..1" Conflit : concerner
+	Utilisateur "1" --> "1..*" Statistique : avoir
+	Statistique "1" --> "*" Conflit : generer
+	Activite --> TypeActivite
 	Contrainte --> TypeContrainte
 	Conflit --> TypeConflit
+	Statistique --> TypeStatistique
+	Statistique --> NiveauEquilibre
+	Statistique --> NiveauFatigue
 ```
 
 ## 🤝 Contribution
